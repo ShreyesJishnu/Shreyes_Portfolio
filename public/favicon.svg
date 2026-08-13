@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#0a0a0b" />
+  <!-- ember: accent disc with a dark disc knocked out, reads as a crescent at 16px -->
+  <mask id="c">
+    <rect width="64" height="64" fill="#fff" />
+    <circle cx="41" cy="26" r="17" fill="#000" />
+  </mask>
+  <circle cx="32" cy="32" r="18" fill="#ff8a3d" mask="url(#c)" />
+</svg>

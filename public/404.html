@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Not found — Shreyes Jishnu</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      /* self-contained: a 404 can be served from any depth, so it must not
+         depend on the hashed asset bundle resolving relative to its path */
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        min-height: 100svh;
+        display: grid;
+        place-content: center;
+        gap: 1.25rem;
+        padding: 2rem;
+        background: #0a0a0b;
+        color: #f4f2ee;
+        /* no @font-face here by design, so name only fonts that can resolve */
+        font-family: system-ui, sans-serif;
+        text-align: center;
+      }
+      .code {
+        font-family: ui-monospace, 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #b4b0a8;
+        margin: 0;
+      }
+      h1 {
+        font-size: clamp(2rem, 7vw, 3.5rem);
+        font-weight: 500;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+        margin: 0;
+      }
+      a {
+        font-family: ui-monospace, 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #f4f2ee;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(233, 231, 226, 0.35);
+        padding-bottom: 0.35rem;
+        justify-self: center;
+      }
+      a:hover {
+        color: #ff8a3d;
+        border-color: #ff8a3d;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="code">Error 404</p>
+    <h1>That page doesn’t exist.</h1>
+    <a id="home" href="/">Back to the portfolio</a>
+
+    <script>
+      // The site root differs between a user page (example.github.io/) and a
+      // project page (example.github.io/repo/). Derive it from the path so the
+      // link works in both without being rebuilt per host.
+      (function () {
+        var parts = location.pathname.split('/').filter(Boolean)
+        document.getElementById('home').href = parts.length > 1 ? '/' + parts[0] + '/' : '/'
+      })()
+    </script>
+  </body>
+</html>
