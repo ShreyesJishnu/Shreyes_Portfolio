@@ -183,7 +183,7 @@ export default function App() {
             <a className="link" href={`${import.meta.env.BASE_URL}resume.pdf`} download>
               Resume
             </a>
-            <a className="link" href="https://www.linkedin.com/in/shreyesjishnu" target="_blank" rel="noreferrer">
+            <a className="link" href="https://www.linkedin.com/in/shreyes-jishnu" target="_blank" rel="noreferrer">
               LinkedIn
             </a>
             <a className="link" href="https://github.com/ShreyesJishnu" target="_blank" rel="noreferrer">
