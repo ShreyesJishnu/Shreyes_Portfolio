@@ -1,4 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
+import {
+  posterFor,
+  posterFallbackFor,
+  previewFor,
+  PLACEHOLDER_MAX_WIDTH,
+} from '../data/media'
+
+const reducedMotion =
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const FOCUSABLE = 'a[href], button, iframe, [tabindex]:not([tabindex="-1"])'
 
@@ -6,6 +15,8 @@ export default function ProjectSheet({ project, onClose }) {
   const panelRef = useRef(null)
   const [playing, setPlaying] = useState(false)
   const hasStore = Boolean(project.playStore || project.appStore)
+  const preview = previewFor(project)
+  const [posterSrc, setPosterSrc] = useState(posterFor(project))
 
   useEffect(() => {
     // Remember where focus came from so closing returns the user to the row
@@ -63,28 +74,30 @@ export default function ProjectSheet({ project, onClose }) {
                 allowFullScreen
               />
             ) : (
-              // Facade: a thumbnail until clicked, so YouTube's player never
-              // loads (and sets nothing) for visitors who don't watch.
+              // Facade: the muted loop plays straight away so the sheet is
+              // never a dead frame, but YouTube's player (and its cookies)
+              // only load if the visitor actually asks for the full video.
               <button className="media__play" onClick={() => setPlaying(true)}>
-                <img
-                  // maxres is true 16:9 but many uploads lack it. YouTube answers
-                  // a missing size with a 404 whose BODY is a 120x90 grey
-                  // placeholder, which the browser happily renders instead of
-                  // firing onError — so detect that by natural size, not by error.
-                  src={`https://i.ytimg.com/vi/${project.youtube}/maxresdefault.jpg`}
-                  onLoad={(e) => {
-                    if (e.currentTarget.naturalWidth < 200) {
-                      e.currentTarget.src = `https://i.ytimg.com/vi/${project.youtube}/sddefault.jpg`
-                    }
-                  }}
-                  onError={(e) => {
-                    e.currentTarget.src = `https://i.ytimg.com/vi/${project.youtube}/sddefault.jpg`
-                  }}
-                  alt=""
-                  loading="lazy"
-                />
+                {posterSrc && (
+                  <img
+                    src={posterSrc}
+                    onLoad={(e) => {
+                      if (e.currentTarget.naturalWidth < PLACEHOLDER_MAX_WIDTH) {
+                        setPosterSrc(posterFallbackFor(project))
+                      }
+                    }}
+                    onError={() => setPosterSrc(posterFallbackFor(project))}
+                    alt=""
+                  />
+                )}
+                {preview && !reducedMotion && (
+                  <video src={preview} autoPlay muted loop playsInline preload="auto" />
+                )}
                 <span className="media__badge" aria-hidden="true">
                   ▶
+                </span>
+                <span className="media__hint" aria-hidden="true">
+                  Watch full video
                 </span>
                 <span className="sr-only">Play {project.title} video on YouTube</span>
               </button>
