@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import Preloader from './components/Preloader'
 import ProjectSheet from './components/ProjectSheet'
+import ProjectCard from './components/ProjectCard'
 
 // Three.js is ~2/3 of the bundle. Splitting it out lets the type and content
 // paint immediately while the field streams in behind the preloader.
@@ -155,18 +156,11 @@ export default function App() {
                 <p className="act__note">{config.note}</p>
               </div>
 
-              {items.map((p, i) => (
-                <button
-                  className="row"
-                  key={p.slug}
-                  onClick={() => setOpen(p)}
-                  aria-haspopup="dialog"
-                >
-                  <span className="row__idx">{String(i + 1).padStart(2, '0')}</span>
-                  <h3 className="row__title">{p.title}</h3>
-                  <span className="row__meta">{p.skills.slice(0, 2).join(' / ')}</span>
-                </button>
-              ))}
+              <div className="cards">
+                {items.map((p, i) => (
+                  <ProjectCard key={p.slug} project={p} index={i} onOpen={setOpen} />
+                ))}
+              </div>
             </section>
           )
         })}
