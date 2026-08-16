@@ -28,6 +28,28 @@ export function posterFallbackFor(project) {
 
 export const PLACEHOLDER_MAX_WIDTH = 200
 
+// Short muted loops live in /public/previews/<slug>.webm. Only projects with
+// a captured video have one; the rest fall back to the still.
+const WITH_PREVIEW = new Set([
+  'stanford-dragon-raytracer',
+  'reality-rip',
+  '3d-runner-prototype',
+  'music-runner',
+  'hd-camera-system',
+  'realmrush-tower-defence',
+  'warehouse-destructor',
+  'project-boost',
+  'boxing',
+  'kayaking',
+  'track-the-snitch',
+  'snake-prototype',
+])
+
 export function previewFor(project) {
-  return project.preview || null
+  if (project.preview) return project.preview
+  if (WITH_PREVIEW.has(project.slug)) {
+    // BASE_URL so it resolves under a /repo/ subpath on GitHub Pages
+    return `${import.meta.env.BASE_URL}previews/${project.slug}.webm`
+  }
+  return null
 }
