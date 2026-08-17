@@ -7,7 +7,7 @@ import {
 } from '../data/media'
 import { useReducedMotion, isTouch } from '../scene/budget'
 
-export default function ProjectCard({ project, index, visited, onOpen, paused, scrollRoot }) {
+export default function ProjectCard({ project, index, visited, onOpen, paused, scrollRoot, compact }) {
   const reducedMotion = useReducedMotion()
   const poster = posterFor(project)
   const preview = previewFor(project)
@@ -20,14 +20,14 @@ export default function ProjectCard({ project, index, visited, onOpen, paused, s
   // Measured against the rail's own centre band rather than the viewport: three
   // cards share a row, so a viewport test would start all three at once.
   useEffect(() => {
-    if (!preview || reducedMotion || paused || !isTouch || !frameRef.current) return
+    if (compact || !preview || reducedMotion || paused || !isTouch || !frameRef.current) return
     const observer = new IntersectionObserver(
       ([entry]) => setActive(entry.isIntersecting),
       { root: scrollRoot?.current || null, rootMargin: '0px -40% 0px -40%' }
     )
     observer.observe(frameRef.current)
     return () => observer.disconnect()
-  }, [preview, reducedMotion, paused, scrollRoot])
+  }, [preview, reducedMotion, paused, scrollRoot, compact])
 
   const canPreview = Boolean(preview) && !reducedMotion && !paused
   const engage = () => canPreview && !isTouch && setActive(true)
@@ -37,6 +37,7 @@ export default function ProjectCard({ project, index, visited, onOpen, paused, s
     <button
       className="card"
       data-tier={project.tier}
+      data-compact={compact || undefined}
       data-visited={visited || undefined}
       onClick={() => onOpen(project)}
       onPointerEnter={engage}
@@ -45,6 +46,7 @@ export default function ProjectCard({ project, index, visited, onOpen, paused, s
       onBlur={disengage}
       aria-haspopup="dialog"
     >
+      {!compact && (
       <span className="card__frame" ref={frameRef}>
         {src ? (
           <img
@@ -88,11 +90,19 @@ export default function ProjectCard({ project, index, visited, onOpen, paused, s
           {project.youtube ? '▶' : hasStore ? '↗' : '—'}
         </span>
       </span>
+      )}
 
       <span className="card__body">
         <span className="card__idx">{String(index + 1).padStart(2, '0')}</span>
         <span className="card__title">{project.title}</span>
-        <span className="card__meta">{project.skills.slice(0, 3).join(' · ')}</span>
+        <span className="card__meta">
+          {project.skills.slice(0, compact ? 2 : 3).join(' · ')}
+        </span>
+        {compact && (
+          <span className="card__go" aria-hidden="true">
+            {project.youtube ? '▶' : hasStore ? '↗' : '→'}
+          </span>
+        )}
       </span>
     </button>
   )

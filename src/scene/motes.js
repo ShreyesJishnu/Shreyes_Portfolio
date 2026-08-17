@@ -82,16 +82,22 @@ export const MOTE_RULES = {
   },
   air: {
     mode: 'gust',
+    // Wind is the one element that reads by passing *through* the scene, so it
+    // ignores the path clearance every other element respects. Kept off the
+    // road it only ever blew past in the margins, which is why it read as
+    // barely there.
+    crossesPath: true,
     // spawn box around the cube: wide and low, so wind crosses the frame
-    spread: 20,
-    along: 40,
+    spread: 26,
+    along: 58,
     height: [0.2, 5.5],
     ceiling: 12,
     // base drift with no input, plus a boost that tracks how fast it rolls —
     // still air when parked, gusting when moving
     flow: [2.2, 4.5],
     boost: 11,
-    lifetime: [0.7, 1.7],
+    // long enough to start upwind and still be alive well past the cube
+    lifetime: [1.3, 2.8],
     // a little lift and wander so it is wind, not a conveyor belt
     rise: [0.15, 0.5],
     sway: 0.7,

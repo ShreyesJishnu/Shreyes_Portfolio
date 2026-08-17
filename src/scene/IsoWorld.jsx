@@ -37,6 +37,33 @@ function TravelDriver({ progress, travel }) {
   return null
 }
 
+// The phone view is a panel, not a backdrop: a ribbon of path read as a thin
+// stripe across it. A plane fills the frame instead, recentred on the cube each
+// frame so it never runs out. The stars stay world-fixed, which is what makes
+// the movement legible on an otherwise featureless surface.
+function GroundPlane({ travel }) {
+  const ref = useRef(null)
+  const focus = useMemo(() => new THREE.Vector3(), [])
+  const dir = useMemo(() => new THREE.Vector3(), [])
+
+  useFrame(() => {
+    if (!ref.current) return
+    pathAt(travel.current.dist, focus, dir)
+    ref.current.position.set(focus.x, -0.06, focus.z)
+  })
+
+  return (
+    <mesh ref={ref} rotation={[-Math.PI / 2, 0, 0]} frustumCulled={false}>
+      <planeGeometry args={[140, 140]} />
+      {/* Unlit and exactly --bg. A lit material takes the ambient and key light
+          on top of its base colour, so it renders lighter than the page no
+          matter what hex it is given — matching the tone means opting out of
+          the lighting, not picking a darker colour. */}
+      <meshBasicMaterial color="#0a0a0b" />
+    </mesh>
+  )
+}
+
 // Tiles laid along the route, plus sparse blocks either side so the world reads
 // as terrain rather than a ribbon.
 //
@@ -432,12 +459,14 @@ function ElementMotes({ accent, element, travel, dim }) {
         const iz = ix + 2
 
         if (arr[iy] < 0) {
-          // upwind and off to the side, so wind crosses the terrain, not the path
+          // upwind, so every gust has the whole scene to blow across
           const back = -(0.2 + Math.random() * 0.8) * (rule.along || rule.spread)
-          const side = sideOffset(rule)
+          const side = rule.crossesPath
+            ? (Math.random() - 0.5) * rule.spread * 2
+            : sideOffset(rule)
           const sx = focus.x + dir.x * back - dir.z * side
           const sz = focus.z + dir.z * back + dir.x * side
-          if (distanceToPath(sx, sz) < PATH_CLEARANCE) continue
+          if (!rule.crossesPath && distanceToPath(sx, sz) < PATH_CLEARANCE) continue
           arr[ix] = sx
           arr[iz] = sz
           arr[iy] = rule.height[0] + Math.random() * (rule.height[1] - rule.height[0])
@@ -537,6 +566,9 @@ function ElementMotes({ accent, element, travel, dim }) {
 // of the left content column.
 const WORLD_SHIFT = 0.26
 
+// How far down the phone panel the cube sits, as a fraction of panel height.
+const MOBILE_DROP = 0.16
+
 // Orthographic camera holding the iso angle while tracking the cube through its
 // turns — the offset is fixed, so the projection itself never rotates.
 function IsoCamera({ travel }) {
@@ -551,14 +583,26 @@ function IsoCamera({ travel }) {
     look.current.copy(pos)
     camera.position.set(look.current.x + 15, 13, look.current.z + 15)
     camera.lookAt(look.current)
-    camera.zoom = Math.max(26, Math.min(46, size.width / 26))
+    // desktop frames off width; the phone panel is short and wide, so its zoom
+    // follows height or the cube ends up a speck
+    camera.zoom = isMobileViewport
+      ? Math.max(24, Math.min(40, size.height / 13))
+      : Math.max(26, Math.min(46, size.width / 26))
 
     // Push the route into the right-hand band so it never runs under the
     // content column. Offsetting the frustum rather than the canvas keeps the
     // star field full-bleed — only the world moves.
-    const shift = size.width >= 1000 ? size.width * WORLD_SHIFT : 0
-    if (shift) camera.setViewOffset(size.width, size.height, -shift, 0, size.width, size.height)
-    else camera.clearViewOffset()
+    if (isMobileViewport) {
+      // negative Y drops the subject down the frame, leaving the top of the
+      // panel to the blend into the content above
+      camera.setViewOffset(
+        size.width, size.height, 0, -size.height * MOBILE_DROP, size.width, size.height
+      )
+    } else {
+      const shift = size.width >= 1000 ? size.width * WORLD_SHIFT : 0
+      if (shift) camera.setViewOffset(size.width, size.height, -shift, 0, size.width, size.height)
+      else camera.clearViewOffset()
+    }
     camera.updateProjectionMatrix()
   })
 
@@ -576,9 +620,15 @@ function Scene({ accent, element, markers, dim }) {
       <ambientLight intensity={0.5} />
       <directionalLight position={[8, 14, 6]} intensity={1.4} />
       <Stars />
-      <Ground element={element} travel={travel} />
+      {isMobileViewport ? (
+        <GroundPlane travel={travel} />
+      ) : (
+        <>
+          <Ground element={element} travel={travel} />
+          <Markers markers={markers} accent={accent} travel={travel} />
+        </>
+      )}
       <ElementMotes accent={accent} element={element} travel={travel} dim={dim} />
-      <Markers markers={markers} accent={accent} travel={travel} />
       <Cube accent={accent} travel={travel} />
     </>
   )

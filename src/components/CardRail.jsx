@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import ProjectCard from './ProjectCard'
+import { isMobileViewport } from '../scene/budget'
 
 // A horizontal rail of project cards: three across, the rest a wheel away.
 export default function CardRail({ label, items, visited, onOpen, paused }) {
@@ -7,7 +8,8 @@ export default function CardRail({ label, items, visited, onOpen, paused }) {
 
   useEffect(() => {
     const el = ref.current
-    if (!el) return
+    // the tab list is an ordinary block; there is nothing to scroll sideways
+    if (!el || isMobileViewport) return
 
     // A vertical wheel over the rail moves it sideways — but only while it has
     // somewhere to go. At either end the event is left alone so the page scrolls
@@ -36,8 +38,9 @@ export default function CardRail({ label, items, visited, onOpen, paused }) {
     <div
       className="cards"
       ref={ref}
-      // a scrollable region has to be reachable without a pointer
-      tabIndex={0}
+      data-layout={isMobileViewport ? 'tabs' : 'rail'}
+      // only a scrollable region needs to be reachable without a pointer
+      tabIndex={isMobileViewport ? undefined : 0}
       role="group"
       aria-label={label}
     >
@@ -50,6 +53,7 @@ export default function CardRail({ label, items, visited, onOpen, paused }) {
           onOpen={onOpen}
           paused={paused}
           scrollRoot={ref}
+          compact={isMobileViewport}
         />
       ))}
     </div>

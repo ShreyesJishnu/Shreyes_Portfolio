@@ -129,6 +129,31 @@ body {
   pointer-events: none;
 }
 
+/* Phone: the world stops being a backdrop and becomes a panel. Content scrolls
+   in the top half, the world holds the bottom half and never moves. Nothing
+   overlaps, so none of the desktop scrim work applies here. */
+@media (max-width: 768px) {
+  .world {
+    inset: auto 0 0 0;
+    height: 44svh;
+    z-index: 5;
+    background: var(--bg);
+    /* One mask on the container fades the backdrop and the canvas together, so
+       the content dissolves as the world resolves. A hard edge — border or
+       otherwise — reads as two stacked screens rather than one scene. */
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 26%);
+  }
+
+  .scrim {
+    display: none;
+  }
+
+  /* only the solid part of the panel actually hides anything */
+  main {
+    padding-bottom: 34svh;
+  }
+}
+
 /* ---------- preloader ---------- */
 
 .preloader {
@@ -352,10 +377,54 @@ body {
 }
 
 @media (max-width: 900px) {
-  .cards {
+  .cards[data-layout='rail'] {
     /* two and a peek: three would leave each card too narrow to read */
     grid-auto-columns: calc((100% - 2 * var(--card-gap)) / 2.2);
   }
+}
+
+/* Phone: a stack of tabs instead of a rail. Nothing scrolls sideways, every
+   project is on screen at once, and each one opens on tap. */
+.cards[data-layout='tabs'] {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: visible;
+  padding-bottom: 0;
+  mask-image: none;
+}
+
+.card[data-compact] {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  transform: none !important;
+}
+
+.card[data-compact] .card__body {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.card[data-compact] .card__title {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.card[data-compact] .card__meta {
+  display: none;
+}
+
+.card__go {
+  color: var(--tier);
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  justify-self: end;
 }
 
 @media (max-width: 640px) {
@@ -1135,7 +1204,37 @@ body {
   /* The stack stays: it carries the motion switch, which must be reachable on
      every viewport. Only the stats panel inside it is a desktop flourish. */
   .hud-stack {
-    bottom: 0.75rem;
     right: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  /* over the world panel rather than the content half — the canvas is
+     decorative, the text is not */
+  .hud-stack {
+    z-index: 40;
+    left: 0;
+    right: 0;
+    bottom: 1.5rem;
+    align-items: center;
+  }
+
+  .hud__motion {
+    gap: 0.6rem;
+    padding: 0.9rem 1.6rem;
+    min-height: 54px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    letter-spacing: 0.16em;
+  }
+
+  .hud__motionIcon {
+    font-size: 0.85em;
+  }
+
+  /* the hero owns the content half, not the whole screen */
+  .hero {
+    min-height: 62svh;
+    padding-block-start: 5rem;
   }
 }
