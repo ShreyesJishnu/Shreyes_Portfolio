@@ -47,8 +47,15 @@ export default function ProjectSheet({ project, onClose }) {
   }, [onClose])
 
   return (
-    <div className="sheet" onClick={onClose} role="dialog" aria-modal="true" aria-label={project.title}>
-      <div className="sheet__panel" ref={panelRef} onClick={(e) => e.stopPropagation()}>
+    <div className="sheet" onClick={onClose}>
+      <div
+        className="sheet__panel"
+        ref={panelRef}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={project.title}
+      >
         <button className="sheet__close" onClick={onClose}>
           Close ✕
         </button>
@@ -78,19 +85,19 @@ export default function ProjectSheet({ project, onClose }) {
             <div className="stores__links">
               {project.playStore && (
                 <a className="store-btn" href={project.playStore} target="_blank" rel="noreferrer">
-                  Google Play ↗
+                  Google Play ↗<span className="sr-only"> (opens in a new tab)</span>
                 </a>
               )}
               {project.appStore && (
                 <a className="store-btn" href={project.appStore} target="_blank" rel="noreferrer">
-                  App Store ↗
+                  App Store ↗<span className="sr-only"> (opens in a new tab)</span>
                 </a>
               )}
             </div>
           </div>
         )}
 
-        <p style={{ color: 'var(--muted)', margin: 0 }}>{project.blurb}</p>
+        <p className="sheet__blurb">{project.blurb}</p>
 
         <div className="spec">
           <span className="label">Key features</span>

@@ -5,9 +5,10 @@ import {
   previewFor,
   PLACEHOLDER_MAX_WIDTH,
 } from '../data/media'
-import { prefersReducedMotion as reducedMotion, isTouch } from '../scene/budget'
+import { useReducedMotion, isTouch } from '../scene/budget'
 
-export default function ProjectCard({ project, index, visited, onOpen }) {
+export default function ProjectCard({ project, index, visited, onOpen, paused }) {
+  const reducedMotion = useReducedMotion()
   const poster = posterFor(project)
   const preview = previewFor(project)
   const [src, setSrc] = useState(poster)
@@ -18,16 +19,16 @@ export default function ProjectCard({ project, index, visited, onOpen }) {
   // Touch devices have no hover, so drive the loop from visibility instead —
   // one card at a time, and never all of them at once.
   useEffect(() => {
-    if (!preview || reducedMotion || !isTouch || !frameRef.current) return
+    if (!preview || reducedMotion || paused || !isTouch || !frameRef.current) return
     const observer = new IntersectionObserver(
       ([entry]) => setActive(entry.isIntersecting),
       { rootMargin: '-35% 0px -35% 0px' }
     )
     observer.observe(frameRef.current)
     return () => observer.disconnect()
-  }, [preview])
+  }, [preview, reducedMotion, paused])
 
-  const canPreview = Boolean(preview) && !reducedMotion
+  const canPreview = Boolean(preview) && !reducedMotion && !paused
   const engage = () => canPreview && !isTouch && setActive(true)
   const disengage = () => !isTouch && setActive(false)
 

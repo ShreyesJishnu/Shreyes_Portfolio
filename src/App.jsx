@@ -81,6 +81,8 @@ export default function App() {
     return () => window.removeEventListener('resize', measure)
   }, [])
 
+  const [paused, setPaused] = useState(false)
+
   return (
     <>
       <Preloader />
@@ -89,6 +91,9 @@ export default function App() {
           accent={elementConfigs[active].accent}
           element={active}
           markers={markers}
+          // chapters with a card grid dim the particles behind it
+          dim={active === 'fire' ? 1 : 0.85}
+          paused={paused}
         />
       </Suspense>
       <div className="scrim" aria-hidden="true" />
@@ -172,7 +177,15 @@ export default function App() {
                 <p className="act__note">{config.note}</p>
               </div>
 
-              <div className="cards">
+              {/* long categories scroll within themselves */}
+              <div
+                className="cards"
+                data-scroll={items.length > 4 || undefined}
+                // a scrollable region has to be reachable without a pointer
+                tabIndex={items.length > 4 ? 0 : undefined}
+                role={items.length > 4 ? 'group' : undefined}
+                aria-label={items.length > 4 ? config.title : undefined}
+              >
                 {items.map((p, i) => (
                   <ProjectCard
                     key={p.slug}
@@ -180,6 +193,7 @@ export default function App() {
                     index={i}
                     visited={visited.has(p.slug)}
                     onOpen={openProject}
+                    paused={paused}
                   />
                 ))}
               </div>
@@ -200,16 +214,21 @@ export default function App() {
               Resume
             </a>
             <a className="link" href="https://www.linkedin.com/in/shreyes-jishnu" target="_blank" rel="noreferrer">
-              LinkedIn
+              LinkedIn<span className="sr-only"> (opens in a new tab)</span>
             </a>
             <a className="link" href="https://github.com/ShreyesJishnu" target="_blank" rel="noreferrer">
-              GitHub
+              GitHub<span className="sr-only"> (opens in a new tab)</span>
             </a>
           </div>
         </footer>
       </main>
 
-      <Hud act={elementConfigs[active].title} actIndex={elementConfigs[active].index} />
+      <Hud
+        act={elementConfigs[active].title}
+        actIndex={elementConfigs[active].index}
+        paused={paused}
+        onTogglePause={() => setPaused((v) => !v)}
+      />
 
       {open && <ProjectSheet project={open} onClose={() => setOpen(null)} />}
     </>

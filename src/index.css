@@ -1,13 +1,18 @@
-@import '@fontsource/space-grotesk/400.css';
-@import '@fontsource/space-grotesk/500.css';
-@import '@fontsource/jetbrains-mono/400.css';
-@import '@fontsource/jetbrains-mono/500.css';
+@import '@fontsource/space-grotesk/latin-400.css';
+@import '@fontsource/space-grotesk/latin-500.css';
+@import '@fontsource/jetbrains-mono/latin-400.css';
+@import '@fontsource/jetbrains-mono/latin-500.css';
 
 :root {
   --bg: #0a0a0b;
   --text: #f4f2ee;
   --muted: #b4b0a8;
   --hairline: rgba(233, 231, 226, 0.18);
+
+  /* opaque panels: these carry the text contrast over the moving world, so they
+     are tokens rather than literals */
+  --surface: #101015;
+  --surface-raised: #14141a;
 
   /* set per active act by JS */
   --accent: #ff8a3d;
@@ -70,12 +75,15 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  /* a flat floor beneath the content column, then a quick fade so the world
+     reads clean on the right — the old ramp left text at 0.05 coverage */
   background: linear-gradient(
     100deg,
-    rgba(10, 10, 11, 0.92) 0%,
-    rgba(10, 10, 11, 0.78) 38%,
-    rgba(10, 10, 11, 0.35) 68%,
-    rgba(10, 10, 11, 0) 100%
+    rgba(10, 10, 11, 0.94) 0%,
+    rgba(10, 10, 11, 0.9) 45%,
+    rgba(10, 10, 11, 0.75) 64%,
+    rgba(10, 10, 11, 0.25) 80%,
+    rgba(10, 10, 11, 0) 92%
   );
 }
 
@@ -83,6 +91,32 @@ body {
   position: relative;
   z-index: 1;
   padding-inline: var(--gutter);
+}
+
+/* Content is deliberately confined to the left so the world has a band of its
+   own on the right, instead of everything competing over the same pixels. */
+@media (min-width: 1000px) {
+  .shell {
+    max-width: 62%;
+  }
+
+  /* the banner and the stat band are the two blocks that earn full width;
+     everything else stays in the left column so the world keeps its band */
+  .hero,
+  .stats {
+    width: calc(100vw - 2 * var(--gutter));
+    max-width: none;
+  }
+
+  .hero__title {
+    max-width: 20ch;
+  }
+}
+
+@media (min-width: 1600px) {
+  .shell {
+    max-width: 56%;
+  }
 }
 
 .world {
@@ -158,6 +192,8 @@ body {
 }
 
 .hero__title {
+  /* it now extends past the scrim's plateau, so it carries its own contrast */
+  text-shadow: 0 2px 30px rgba(10, 10, 11, 0.9);
   font-size: var(--t-hero);
   line-height: 0.92;
   letter-spacing: -0.03em;
@@ -185,7 +221,7 @@ body {
   margin-block: clamp(4rem, 12vh, 9rem);
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1500px) {
   .stats {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -291,8 +327,32 @@ body {
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
-  gap: clamp(1rem, 2vw, 1.75rem);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+}
+
+/* Acts with more than four projects scroll within themselves, so one long
+   category cannot push the rest of the page out of reach. */
+.cards[data-scroll='true'] {
+  max-height: 68vh;
+  overflow-y: auto;
+  /* the page scroll drives the world, so chaining out of this list would lurch
+     the cube the moment the list bottoms out */
+  overscroll-behavior: contain;
+  padding-right: 0.4rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline) transparent;
+  /* fade the cut edge so it reads as continuing, not clipped */
+  mask-image: linear-gradient(to bottom, #000 92%, transparent 100%);
+}
+
+.cards[data-scroll='true']::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cards[data-scroll='true']::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border-radius: 3px;
 }
 
 .card {
@@ -300,10 +360,13 @@ body {
   z-index: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
-  padding: 0;
-  border: 0;
-  background: none;
+  gap: 0.7rem;
+  /* an opaque surface: contrast can't be left to whatever the world is doing
+     behind the card at that moment */
+  padding: 0.6rem 0.6rem 0.8rem;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--surface);
   color: inherit;
   font: inherit;
   text-align: left;
@@ -315,8 +378,10 @@ body {
    is unmistakable */
 .card:hover,
 .card:focus-visible {
-  transform: scale(1.075);
+  transform: scale(1.05);
   z-index: 5;
+  border-color: var(--tier);
+  background: var(--surface-raised);
 }
 
 .card__frame {
@@ -405,15 +470,19 @@ body {
 }
 
 .card__frame {
-  border-color: color-mix(in srgb, var(--tier) 75%, transparent);
+  border-color: var(--hairline);
 }
 
 .card:hover .card__frame,
 .card:focus-visible .card__frame {
-  border-color: var(--tier);
-  box-shadow: 0 0 0 2px var(--tier),
-    0 0 28px -4px color-mix(in srgb, var(--tier) 75%, transparent),
-    0 30px 60px -24px rgba(0, 0, 0, 0.9);
+  border-color: color-mix(in srgb, var(--tier) 70%, transparent);
+}
+
+.card:hover,
+.card:focus-visible {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--tier) 55%, transparent),
+    0 0 26px -6px color-mix(in srgb, var(--tier) 55%, transparent),
+    0 26px 50px -26px rgba(0, 0, 0, 0.95);
 }
 
 .card__badge {
@@ -453,15 +522,19 @@ body {
 }
 
 .card__frame {
-  border-color: color-mix(in srgb, var(--tier) 75%, transparent);
+  border-color: var(--hairline);
 }
 
 .card:hover .card__frame,
 .card:focus-visible .card__frame {
-  border-color: var(--tier);
-  box-shadow: 0 0 0 2px var(--tier),
-    0 0 28px -4px color-mix(in srgb, var(--tier) 75%, transparent),
-    0 30px 60px -24px rgba(0, 0, 0, 0.9);
+  border-color: color-mix(in srgb, var(--tier) 70%, transparent);
+}
+
+.card:hover,
+.card:focus-visible {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--tier) 55%, transparent),
+    0 0 26px -6px color-mix(in srgb, var(--tier) 55%, transparent),
+    0 26px 50px -26px rgba(0, 0, 0, 0.95);
 }
 
 .card__badge {
@@ -716,11 +789,22 @@ body {
   html {
     scroll-behavior: auto;
   }
+
+  /* Reduced motion means less travel, not less feedback. Killing every
+     transition would strip hover and focus state from the users who most need
+     it to be obvious, so only movement is removed — colour and opacity still
+     animate, and entrances resolve instantly instead of sliding. */
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+    animation-name: none !important;
+    transition-property: opacity, color, background-color, border-color, box-shadow !important;
+    transition-duration: 0.15s !important;
+  }
+
+  .card:hover,
+  .card:focus-visible {
+    transform: none !important;
   }
 }
 
@@ -773,6 +857,14 @@ body {
   .hud-title {
     padding: 0.35rem 0.75rem;
     letter-spacing: 0.14em;
+  }
+}
+
+@media (max-width: 999px) {
+  /* the banner is fixed at the top on phones, where the column is full width —
+     without this reservation it lands across the first line of the h1 */
+  .hero {
+    padding-block-start: 4.5rem;
   }
 }
 
@@ -845,7 +937,7 @@ body {
 .hud__play:hover,
 .hud__play:focus-visible {
   background: color-mix(in srgb, var(--text-accent) 26%, transparent);
-  color: #fff;
+  color: var(--text);
   outline: none;
 }
 
@@ -857,7 +949,7 @@ body {
 .hud__play:hover .hud__playIcon,
 .hud__play:focus-visible .hud__playIcon {
   transform: scale(1.35);
-  color: #fff;
+  color: var(--text);
 }
 
 .hud__playLabel {
@@ -911,6 +1003,57 @@ body {
   .hud {
     display: none;
   }
+}
+
+/* The motion switch. Same panel language as the HUD, but its own element so the
+   breakpoint above cannot hide it — it is the required way to stop the world
+   and the card loops, not a flourish. */
+.hud__motion {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.7rem;
+  min-height: 44px;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  background: rgba(8, 8, 10, 0.82);
+  backdrop-filter: blur(8px);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+
+.hud__motion:hover,
+.hud__motion:focus-visible {
+  color: var(--text);
+  border-color: var(--text-accent);
+  background: color-mix(in srgb, var(--text-accent) 12%, rgba(8, 8, 10, 0.82));
+}
+
+.hud__motion:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 2px;
+}
+
+/* pressed = motion is stopped, so the control reads as active, not disabled */
+.hud__motion[aria-pressed='true'] {
+  color: var(--text);
+  border-color: var(--text-accent);
+}
+
+.hud__motionIcon {
+  font-size: 0.7em;
+  letter-spacing: -0.1em;
+}
+
+.sheet__blurb {
+  color: var(--muted);
+  margin: 0;
 }
 
 .console {
@@ -981,7 +1124,10 @@ body {
 }
 
 @media (max-width: 640px) {
+  /* The stack stays: it carries the motion switch, which must be reachable on
+     every viewport. Only the stats panel inside it is a desktop flourish. */
   .hud-stack {
-    display: none;
+    bottom: 0.75rem;
+    right: 0.75rem;
   }
 }

@@ -84,24 +84,6 @@ export const projects = [
     skills: ['Gameplay Programming', 'Learning Systems Design', 'Audio Integration', 'UX for Serious Games', 'Unity', 'C#'],
   },
   {
-    slug: 'hd-camera-system',
-    tier: 'hero',
-    youtube: 'NQzuiP2Xs3k',
-    element: 'water',
-    title: 'HD Camera System',
-    blurb:
-      'A fully controllable 3D camera system prototype exploring player-driven camera mechanics and spatial traversal, free control over roll, pitch, yaw, and position within the environment.',
-    features: [
-      'Manual camera control',
-      'Place markers in 3D space',
-      'Target lock-on mechanics',
-      'Smooth interpolation and user feedback',
-      '3D math, coordinate transformations, and camera interpolation techniques',
-    ],
-    skills: ['Unity', 'C#', 'Camera Systems', '3D Math', 'Player Interaction', 'Transform & Interpolation Logic'],
-  },
-
-  {
     slug: 'realmrush-tower-defence',
     tier: 'intermediate',
     youtube: 'iHXCSTEHGSU',

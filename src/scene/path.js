@@ -1,25 +1,30 @@
 import * as THREE from 'three'
 
-// The route the cube travels, as waypoints on the ground plane. It turns in both
-// axes rather than running straight, so the world reads as a place you move
-// through rather than a corridor.
-const WAYPOINTS = [
+export const TILE = 1.6
+
+// The route, in whole tiles. Keeping waypoints on a grid — and every segment
+// axis-aligned — is what lets the tiles butt up flush and turn at a clean 90°.
+// Sampling by arc length and rotating each tile to the heading cannot do that:
+// at a corner the heading flips instantly and the tiles gap or overlap.
+const WAYPOINTS_GRID = [
   [0, 0],
-  [18, 0],
-  [18, 13],
-  [40, 13],
-  [40, -9],
-  [62, -9],
-  [62, 9],
-  [88, 9],
-  [88, -6],
-  [112, -6],
-  [112, 10],
-  [134, 10],
+  [11, 0],
+  [11, 8],
+  [25, 8],
+  [25, -6],
+  [39, -6],
+  [39, 6],
+  [55, 6],
+  [55, -4],
+  [70, -4],
+  [70, 6],
+  [84, 6],
 ]
 
-// Arc-length table so distance travelled maps evenly along the route — without
-// it, long segments would be crossed at the same rate as short ones.
+const WAYPOINTS = WAYPOINTS_GRID.map(([gx, gz]) => [gx * TILE, gz * TILE])
+
+// Arc-length table so distance maps evenly along the route — without it, long
+// segments would be crossed at the same rate as short ones.
 const segments = []
 let total = 0
 for (let i = 0; i < WAYPOINTS.length - 1; i++) {
@@ -51,16 +56,49 @@ export function pathAt(distance, outPos = _pos, outDir = _dir) {
   return { position: outPos, direction: outDir }
 }
 
-// Evenly spaced samples, used to lay the tiles.
-export function samplePath(step) {
+// Every tile the route covers, on the grid, deduped so corners get exactly one
+// tile instead of two stacked ones. Tiles are axis-aligned, never rotated.
+export function tileGrid() {
+  const seen = new Set()
   const out = []
-  for (let d = 0; d <= total; d += step) {
-    const { position, direction } = pathAt(d, new THREE.Vector3(), new THREE.Vector3())
-    out.push({
-      x: position.x,
-      z: position.z,
-      angle: Math.atan2(direction.x, direction.z),
-    })
+  const add = (gx, gz) => {
+    const key = `${gx},${gz}`
+    if (seen.has(key)) return
+    seen.add(key)
+    out.push({ x: gx * TILE, z: gz * TILE, gx, gz })
+  }
+
+  for (let i = 0; i < WAYPOINTS_GRID.length - 1; i++) {
+    const [x0, z0] = WAYPOINTS_GRID[i]
+    const [x1, z1] = WAYPOINTS_GRID[i + 1]
+    const stepX = Math.sign(x1 - x0)
+    const stepZ = Math.sign(z1 - z0)
+    let x = x0
+    let z = z0
+    add(x, z)
+    while (x !== x1 || z !== z1) {
+      if (x !== x1) x += stepX
+      else z += stepZ
+      add(x, z)
+    }
   }
   return out
+}
+
+// Distance from a point to the route's centre line — used to keep environment
+// particles off the path.
+export function distanceToPath(x, z) {
+  let best = Infinity
+  for (const s of segments) {
+    const dx = s.x1 - s.x0
+    const dz = s.z1 - s.z0
+    const len2 = dx * dx + dz * dz
+    let t = len2 > 0 ? ((x - s.x0) * dx + (z - s.z0) * dz) / len2 : 0
+    t = Math.min(1, Math.max(0, t))
+    const px = s.x0 + dx * t
+    const pz = s.z0 + dz * t
+    const d = Math.hypot(x - px, z - pz)
+    if (d < best) best = d
+  }
+  return best
 }

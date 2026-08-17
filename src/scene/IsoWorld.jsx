@@ -1,9 +1,9 @@
 import { useMemo, useRef } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { prefersReducedMotion, STAR_COUNT } from './budget'
-import { PATH_LENGTH, pathAt, samplePath } from './path'
-import { MOTE_COUNT, ruleFor } from './motes'
+import { isMobileViewport, useReducedMotion, STAR_COUNT } from './budget'
+import { PATH_LENGTH, TILE, pathAt, tileGrid, distanceToPath } from './path'
+import { MOTE_COUNT, PATH_CLEARANCE, ruleFor, heatFor } from './motes'
 
 // A minimal isometric world: real 3D geometry under an orthographic camera at
 // the classic iso angle. Scroll drives how far the cube has travelled along a
@@ -11,7 +11,6 @@ import { MOTE_COUNT, ruleFor } from './motes'
 //
 // Kept deliberately spare: flat forms, one accent colour, no textures.
 
-const TILE = 1.6
 const CUBE = 1
 
 function useScrollProgress() {
@@ -23,42 +22,62 @@ function useScrollProgress() {
   return progress
 }
 
+// Single source of truth for where the cube is this frame. Every system — cube,
+// camera, particles, ground — reads this instead of easing the raw scroll
+// separately, which previously left them at three different points on the route.
+function TravelDriver({ progress, travel }) {
+  useFrame(() => {
+    const target = progress.current * PATH_LENGTH
+    const prev = travel.current.dist
+    const next = prev + (target - prev) * 0.1
+    travel.current.dist = next
+    travel.current.delta = next - prev
+    travel.current.speed = Math.min(1, Math.abs(next - prev) / 0.6)
+  })
+  return null
+}
+
 // Tiles laid along the route, plus sparse blocks either side so the world reads
 // as terrain rather than a ribbon.
 //
 // Instanced: there are several hundred tiles and earth needs to shake the ones
 // near the cube every frame, which is far too much for individual meshes.
-function Ground({ element, progress }) {
+function Ground({ element, travel }) {
   const tilesRef = useRef(null)
   const scatterRef = useRef(null)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const focus = useMemo(() => new THREE.Vector3(), [])
   const dir = useMemo(() => new THREE.Vector3(), [])
-  const lastDist = useRef(0)
   const shake = useRef(0)
 
   const { tiles, scatter } = useMemo(() => {
-    const samples = samplePath(TILE * 0.85)
+    const grid = tileGrid()
+    const occupied = new Set(grid.map((t) => `${t.gx},${t.gz}`))
     const scatterOut = []
-    samples.forEach((s, i) => {
-      if (i % 5 !== 0) return
-      const side = i % 10 === 0 ? 1 : -1
-      const off = TILE * (1.7 + (i % 3) * 0.9)
-      scatterOut.push({
-        x: s.x + Math.cos(s.angle) * off * side,
-        z: s.z - Math.sin(s.angle) * off * side,
-        h: 0.14 + ((i * 37) % 7) * 0.18,
-      })
+    // rubble sitting off the path, snapped to the same grid so it reads as part
+    // of the same world
+    grid.forEach((t, i) => {
+      if (i % 4 !== 0) return
+      for (const off of [3, -3, 5]) {
+        const gx = t.gx + (i % 8 === 0 ? off : 0)
+        const gz = t.gz + (i % 8 === 0 ? 0 : off)
+        if (occupied.has(`${gx},${gz}`)) continue
+        occupied.add(`${gx},${gz}`)
+        scatterOut.push({
+          x: gx * TILE,
+          z: gz * TILE,
+          h: 0.16 + ((i * 37) % 7) * 0.2,
+        })
+      }
     })
-    return { tiles: samples, scatter: scatterOut }
+    return { tiles: grid, scatter: scatterOut }
   }, [])
 
   useFrame((state) => {
     const mesh = tilesRef.current
     if (!mesh) return
-    const travelled = progress.current * PATH_LENGTH
-    const speed = Math.min(1, Math.abs(travelled - lastDist.current) / 0.6)
-    lastDist.current = travelled
+    const travelled = travel.current.dist
+    const speed = travel.current.speed
     pathAt(travelled, focus, dir)
 
     // earth breaks up under the cube; other elements leave the ground still
@@ -75,8 +94,8 @@ function Ground({ element, progress }) {
         const near = Math.max(0, 1 - d / 9)
         y = Math.sin(t * 22 + i * 1.7) * 0.09 * near * shake.current
       }
+      // axis-aligned: grid tiles butt up flush and corners stay square
       dummy.position.set(tile.x, y, tile.z)
-      dummy.rotation.set(0, tile.angle, 0)
       dummy.updateMatrix()
       mesh.setMatrixAt(i, dummy.matrix)
     }
@@ -101,7 +120,7 @@ function Ground({ element, progress }) {
   return (
     <group>
       <instancedMesh ref={tilesRef} args={[undefined, undefined, tiles.length]} frustumCulled={false}>
-        <boxGeometry args={[TILE * 0.9, 0.12, TILE * 0.9]} />
+        <boxGeometry args={[TILE, 0.12, TILE]} />
         <meshStandardMaterial color="#1c1c22" roughness={0.9} flatShading />
       </instancedMesh>
 
@@ -114,7 +133,7 @@ function Ground({ element, progress }) {
 }
 
 // One pillar per chapter, standing beside the route at that chapter's distance.
-function Markers({ markers, accent, progress }) {
+function Markers({ markers, accent, travel }) {
   const group = useRef(null)
 
   const placed = useMemo(
@@ -134,7 +153,7 @@ function Markers({ markers, accent, progress }) {
 
   useFrame(() => {
     if (!group.current) return
-    const travelled = progress.current * PATH_LENGTH
+    const travelled = travel.current.dist
     group.current.children.forEach((pillar, i) => {
       const reached = travelled >= (placed[i]?.d ?? 0) - TILE
       const mat = pillar.material
@@ -162,10 +181,9 @@ function Markers({ markers, accent, progress }) {
 // Rolls along the route rather than sliding. Rotation is accumulated about the
 // axis perpendicular to the current heading, so it keeps rolling correctly
 // through corners instead of spinning on one fixed axis.
-function Cube({ accent, progress }) {
+function Cube({ accent, travel }) {
   const ref = useRef(null)
   const spin = useRef(new THREE.Quaternion())
-  const travelled = useRef(0)
   const rolled = useRef(0)
 
   const pos = useMemo(() => new THREE.Vector3(), [])
@@ -175,12 +193,8 @@ function Cube({ accent, progress }) {
 
   useFrame(() => {
     if (!ref.current) return
-    const target = progress.current * PATH_LENGTH
-    const prev = travelled.current
-    travelled.current += (target - prev) * 0.1
-    const delta = travelled.current - prev
-
-    pathAt(travelled.current, pos, dir)
+    const delta = travel.current.delta
+    pathAt(travel.current.dist, pos, dir)
 
     // a quarter turn per cube length, about the horizontal axis ⟂ to heading
     if (Math.abs(delta) > 1e-5) {
@@ -228,29 +242,107 @@ function Stars() {
 }
 
 
+// Environment particles belong to the terrain, not the cube: they spawn in a
+// band alongside the route and are rejected if they land on it, so the cube
+// rolls through them rather than trailing them.
+function sideOffset(rule) {
+  const span = rule.spread - PATH_CLEARANCE
+  const lateral = PATH_CLEARANCE + Math.random() * Math.max(1, span)
+  return Math.random() < 0.5 ? -lateral : lateral
+}
+
+// Returns null when it cannot find a clear spot — near a corner a lateral push
+// can land on another leg of the route. The caller just waits a frame, which is
+// invisible at these spawn rates and keeps the path genuinely clear.
+function offPath(focus, dir, rule, relative = false) {
+  const along = (Math.random() - 0.5) * (rule.along || rule.spread * 2)
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const side = sideOffset(rule)
+    const x = focus.x + dir.x * along - dir.z * side
+    const z = focus.z + dir.z * along + dir.x * side
+    if (distanceToPath(x, z) >= PATH_CLEARANCE) {
+      return relative ? [x - focus.x, z - focus.z] : [x, z]
+    }
+  }
+  return null
+}
+
+// Points shader: per-particle size and life, so a mote can taper and cool as
+// it rises. PointsMaterial applies one size and one colour to the whole pool,
+// which cannot express a flame.
+const MOTE_VERT = /* glsl */ `
+  attribute float aLife;   // 1 at the ground, 0 at the ceiling
+  attribute float aSize;
+  uniform float uSize;
+  varying float vLife;
+
+  void main() {
+    vLife = aLife;
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    // shrink as it dies; dead motes collapse to nothing
+    gl_PointSize = uSize * aSize * smoothstep(0.0, 0.35, aLife) * (0.45 + 0.55 * aLife);
+    gl_Position = projectionMatrix * mv;
+  }
+`
+
+const MOTE_FRAG = /* glsl */ `
+  uniform vec3 uHot;
+  uniform vec3 uCool;
+  uniform float uOpacity;
+  varying float vLife;
+
+  void main() {
+    vec2 c = gl_PointCoord - 0.5;
+    float d = length(c);
+    if (d > 0.5) discard;
+    // soft round falloff, hottest at the core
+    float falloff = smoothstep(0.5, 0.0, d);
+    vec3 col = mix(uCool, uHot, vLife * vLife);
+    gl_FragColor = vec4(col, falloff * vLife * uOpacity);
+  }
+`
+
 // Motes rising off the ground. One pool, four behaviours — see motes.js. They
 // spawn around wherever the cube is, so they are always in frame.
-function ElementMotes({ accent, element, progress }) {
+function ElementMotes({ accent, element, travel, dim }) {
   const matRef = useRef(null)
   const focus = useMemo(() => new THREE.Vector3(), [])
   const dir = useMemo(() => new THREE.Vector3(), [])
-  const target = useMemo(() => new THREE.Color(), [])
-  const lastDist = useRef(0)
+  const hotTarget = useMemo(() => new THREE.Color(), [])
+  const coolTarget = useMemo(() => new THREE.Color(), [])
   const elapsed = useRef(0)
 
-  const { geometry, vel, seed } = useMemo(() => {
+  const { geometry, vel, seed, originX, originZ, age, span } = useMemo(() => {
     const g = new THREE.BufferGeometry()
     const pos = new Float32Array(MOTE_COUNT * 3)
+    const life = new Float32Array(MOTE_COUNT)
+    const size = new Float32Array(MOTE_COUNT)
     const v = new Float32Array(MOTE_COUNT)
     const sd = new Float32Array(MOTE_COUNT)
+    const ox = new Float32Array(MOTE_COUNT)
+    const oz = new Float32Array(MOTE_COUNT)
+    const ag = new Float32Array(MOTE_COUNT)
+    const lf = new Float32Array(MOTE_COUNT)
     for (let i = 0; i < MOTE_COUNT; i++) {
-      // start dead below the floor; the first frames seed them properly
-      pos[i * 3 + 1] = -1
+      pos[i * 3 + 1] = -1 // start dead below the floor
       sd[i] = Math.random() * 100
+      size[i] = 0.55 + Math.random() * 0.9
     }
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3))
-    return { geometry: g, vel: v, seed: sd }
+    g.setAttribute('aLife', new THREE.BufferAttribute(life, 1))
+    g.setAttribute('aSize', new THREE.BufferAttribute(size, 1))
+    return { geometry: g, vel: v, seed: sd, originX: ox, originZ: oz, age: ag, span: lf }
   }, [])
+
+  const uniforms = useMemo(
+    () => ({
+      uSize: { value: 7 },
+      uOpacity: { value: 0.6 },
+      uHot: { value: new THREE.Color('#ffd9a0') },
+      uCool: { value: new THREE.Color('#ff4d10') },
+    }),
+    []
+  )
 
   useFrame((state, delta) => {
     const dt = Math.min(delta, 0.05)
@@ -258,109 +350,236 @@ function ElementMotes({ accent, element, progress }) {
     const t = elapsed.current
     const rule = ruleFor(element)
 
-    const travelled = progress.current * PATH_LENGTH
-    // how fast the cube is rolling right now, normalised
-    const speed = Math.min(1, Math.abs(travelled - lastDist.current) / 0.6)
-    lastDist.current = travelled
-    pathAt(travelled, focus, dir)
+    const speed = travel.current.speed
+    pathAt(travel.current.dist, focus, dir)
 
-    // earth only throws debris while the cube is actually moving
     const emission = rule.emitAtRest ? 1 : speed
     const arr = geometry.attributes.position.array
+    const life = geometry.attributes.aLife.array
 
-    for (let i = 0; i < MOTE_COUNT; i++) {
-      const ix = i * 3
-      const iy = ix + 1
-      const iz = ix + 2
+    if (rule.mode === 'wave') {
+      // Ocean: most particles ride a surface built from two crossing swells, so
+      // they warp along the wave rather than rising and dying. The rest are
+      // spray, thrown off the crests and pulled back by gravity.
+      const amp = rule.waveAmp
+      for (let i = 0; i < MOTE_COUNT; i++) {
+        const ix = i * 3
+        const iy = ix + 1
+        const iz = ix + 2
 
-      if (arr[iy] < 0) {
-        // dead: respawn only if this element is emitting
-        if (Math.random() > emission * 0.06) continue
-        arr[ix] = focus.x + (Math.random() - 0.5) * rule.spread * 2
-        arr[iy] = 0
-        arr[iz] = focus.z + (Math.random() - 0.5) * rule.spread * 2
-        vel[i] = rule.rise[0] + Math.random() * (rule.rise[1] - rule.rise[0])
-        continue
+        if (arr[iy] < 0) {
+          // originX/Z hold an offset from the cube here, so the sea follows it
+          const spot = offPath(focus, dir, rule, true)
+          if (!spot) continue
+          originX[i] = spot[0]
+          originZ[i] = spot[1]
+          arr[iy] = 0
+          vel[i] = 0
+        }
+
+        const ox = originX[i]
+        const oz = originZ[i]
+        const surfaceX = focus.x + ox
+        const surfaceZ = focus.z + oz
+        const swell =
+          Math.sin(ox * rule.waveFreq + t * rule.waveSpeed) * amp +
+          Math.sin(oz * rule.waveFreq2 + t * rule.waveSpeed * 0.8 + ox * 0.3) * amp
+
+        const isSpray = i % rule.sprayEvery === 0
+
+        if (isSpray && vel[i] > 0) {
+          // airborne: keep its own arc until it falls back to the surface
+          vel[i] -= rule.gravity * dt
+          arr[iy] += vel[i] * dt
+          arr[ix] += Math.sin(t * 1.7 + seed[i]) * 0.4 * dt
+          arr[iz] += Math.cos(t * 1.3 + seed[i]) * 0.4 * dt
+          life[i] = Math.min(1, 0.35 + arr[iy] / rule.ceiling)
+          if (arr[iy] <= 0.12 + swell) {
+            vel[i] = 0
+            arr[iy] = 0.12 + swell
+          }
+        } else {
+          arr[ix] = surfaceX
+          arr[iz] = surfaceZ
+          arr[iy] = 0.12 + swell
+          // crests read as foam, troughs sink toward the deep colour
+          life[i] = Math.min(1, Math.max(0, (swell + amp * 2) / (amp * 4)))
+          // launch spray off a rising crest
+          if (isSpray && swell > amp * 0.9 && Math.random() < 0.04) {
+            vel[i] = rule.spray[0] + Math.random() * (rule.spray[1] - rule.spray[0])
+          }
+        }
+
+        // recycle anything that drifted too far from the cube
+        if (Math.abs(surfaceX - focus.x) > rule.spread * 1.4) arr[iy] = -1
       }
+    } else if (rule.mode === 'gust') {
+      // Wind: each mote is advected along the heading it was born under, so a
+      // gust curves with the route instead of snapping direction at a corner.
+      // Flow scales with how fast the cube is rolling — calm when parked.
+      const flowBoost = speed * rule.boost
+      for (let i = 0; i < MOTE_COUNT; i++) {
+        const ix = i * 3
+        const iy = ix + 1
+        const iz = ix + 2
 
-      vel[i] -= rule.gravity * dt
-      arr[iy] += vel[i] * dt
-      // lateral motion is what separates a wave from an ember
-      arr[ix] += Math.sin(t * rule.swayFreq + seed[i]) * rule.sway * dt
-      arr[iz] += Math.cos(t * rule.swayFreq * 0.7 + seed[i]) * rule.sway * dt
+        if (arr[iy] < 0) {
+          // upwind and off to the side, so wind crosses the terrain, not the path
+          const back = -(0.2 + Math.random() * 0.8) * (rule.along || rule.spread)
+          const side = sideOffset(rule)
+          const sx = focus.x + dir.x * back - dir.z * side
+          const sz = focus.z + dir.z * back + dir.x * side
+          if (distanceToPath(sx, sz) < PATH_CLEARANCE) continue
+          arr[ix] = sx
+          arr[iz] = sz
+          arr[iy] = rule.height[0] + Math.random() * (rule.height[1] - rule.height[0])
+          originX[i] = dir.x
+          originZ[i] = dir.z
+          vel[i] = rule.flow[0] + Math.random() * (rule.flow[1] - rule.flow[0])
+          age[i] = 0
+          span[i] = rule.lifetime[0] + Math.random() * (rule.lifetime[1] - rule.lifetime[0])
+          life[i] = 0
+          continue
+        }
 
-      if (arr[iy] > rule.ceiling || arr[iy] < -0.05) arr[iy] = -1
+        const travel = (vel[i] + flowBoost) * dt
+        arr[ix] += originX[i] * travel
+        arr[iz] += originZ[i] * travel
+        arr[iy] += (rule.rise[0] + seed[i] * 0.004) * dt
+        arr[ix] += Math.sin(t * rule.swayFreq + seed[i]) * rule.sway * dt
+        arr[iz] += Math.cos(t * rule.swayFreq * 0.8 + seed[i]) * rule.sway * dt
+
+        age[i] += dt
+        const k = age[i] / span[i]
+        // fade in and out so gusts arrive and leave rather than blinking
+        life[i] = Math.max(0, Math.min(1, Math.min(k * 4, (1 - k) * 2.2)))
+        if (k >= 1) {
+          arr[iy] = -1
+          life[i] = 0
+        }
+      }
+    } else {
+      for (let i = 0; i < MOTE_COUNT; i++) {
+        const ix = i * 3
+        const iy = ix + 1
+        const iz = ix + 2
+
+        if (arr[iy] < 0) {
+          if (Math.random() > emission * 0.06) continue
+          const spot = offPath(focus, dir, rule)
+          if (!spot) continue
+          const [ox, oz] = spot
+          arr[ix] = ox
+          arr[iy] = 0
+          arr[iz] = oz
+          originX[i] = ox
+          originZ[i] = oz
+          vel[i] = rule.rise[0] + Math.random() * (rule.rise[1] - rule.rise[0])
+          life[i] = 1
+          continue
+        }
+
+        vel[i] -= rule.gravity * dt
+        arr[iy] += vel[i] * dt
+
+        const climb = Math.min(1, Math.max(0, arr[iy] / rule.ceiling))
+        arr[ix] += Math.sin(t * rule.swayFreq + seed[i]) * rule.sway * dt
+        arr[iz] += Math.cos(t * rule.swayFreq * 0.7 + seed[i]) * rule.sway * dt
+        const pull = rule.taper * climb * 2.2 * dt
+        arr[ix] += (originX[i] - arr[ix]) * pull
+        arr[iz] += (originZ[i] - arr[iz]) * pull
+
+        life[i] = 1 - climb
+        if (arr[iy] > rule.ceiling || arr[iy] < -0.05) {
+          arr[iy] = -1
+          life[i] = 0
+        }
+      }
     }
 
     geometry.attributes.position.needsUpdate = true
+    geometry.attributes.aLife.needsUpdate = true
 
-    if (matRef.current) {
-      matRef.current.color.lerp(target.set(accent), 0.06)
-      matRef.current.size += (rule.size - matRef.current.size) * 0.06
-      matRef.current.opacity += (rule.opacity - matRef.current.opacity) * 0.06
+    const heat = heatFor(rule, accent)
+    const u = matRef.current?.uniforms
+    if (u) {
+      u.uSize.value += (rule.size - u.uSize.value) * 0.06
+      u.uOpacity.value += (rule.opacity * dim - u.uOpacity.value) * 0.06
+      u.uHot.value.lerp(hotTarget.set(heat.hot), 0.06)
+      u.uCool.value.lerp(coolTarget.set(heat.cool), 0.06)
     }
   })
 
   return (
     <points geometry={geometry} frustumCulled={false}>
-      <pointsMaterial
-        ref={(m) => {
-          if (m && !matRef.current) {
-            matRef.current = m
-            m.color.set(accent)
-          }
-        }}
-        size={3}
+      <shaderMaterial
+        ref={matRef}
+        vertexShader={MOTE_VERT}
+        fragmentShader={MOTE_FRAG}
+        uniforms={uniforms}
         transparent
-        opacity={0.85}
         depthWrite={false}
         blending={THREE.AdditiveBlending}
-        // three ignores sizeAttenuation under an orthographic camera, so size
-        // here is in pixels
-        sizeAttenuation={false}
       />
     </points>
   )
 }
 
+// Fraction of the viewport width the world is pushed right by, so it sits clear
+// of the left content column.
+const WORLD_SHIFT = 0.26
+
 // Orthographic camera holding the iso angle while tracking the cube through its
 // turns — the offset is fixed, so the projection itself never rotates.
-function IsoCamera({ progress }) {
+function IsoCamera({ travel }) {
   const { camera, size } = useThree()
   const look = useRef(new THREE.Vector3())
   const pos = useMemo(() => new THREE.Vector3(), [])
   const dir = useMemo(() => new THREE.Vector3(), [])
 
   useFrame(() => {
-    pathAt(progress.current * PATH_LENGTH, pos, dir)
-    look.current.lerp(pos, 0.08)
+    // travel is already eased, so the camera tracks it directly
+    pathAt(travel.current.dist, pos, dir)
+    look.current.copy(pos)
     camera.position.set(look.current.x + 15, 13, look.current.z + 15)
     camera.lookAt(look.current)
     camera.zoom = Math.max(26, Math.min(46, size.width / 26))
+
+    // Push the route into the right-hand band so it never runs under the
+    // content column. Offsetting the frustum rather than the canvas keeps the
+    // star field full-bleed — only the world moves.
+    const shift = size.width >= 1000 ? size.width * WORLD_SHIFT : 0
+    if (shift) camera.setViewOffset(size.width, size.height, -shift, 0, size.width, size.height)
+    else camera.clearViewOffset()
     camera.updateProjectionMatrix()
   })
 
   return null
 }
 
-function Scene({ accent, element, markers }) {
+function Scene({ accent, element, markers, dim }) {
   const progress = useScrollProgress()
+  const travel = useRef({ dist: 0, delta: 0, speed: 0 })
   return (
     <>
-      <IsoCamera progress={progress} />
+      {/* must come first: everything below reads the value it writes */}
+      <TravelDriver progress={progress} travel={travel} />
+      <IsoCamera travel={travel} />
       <ambientLight intensity={0.5} />
       <directionalLight position={[8, 14, 6]} intensity={1.4} />
       <Stars />
-      <Ground element={element} progress={progress} />
-      <ElementMotes accent={accent} element={element} progress={progress} />
-      <Markers markers={markers} accent={accent} progress={progress} />
-      <Cube accent={accent} progress={progress} />
+      <Ground element={element} travel={travel} />
+      <ElementMotes accent={accent} element={element} travel={travel} dim={dim} />
+      <Markers markers={markers} accent={accent} travel={travel} />
+      <Cube accent={accent} travel={travel} />
     </>
   )
 }
 
-export default function IsoWorld({ accent, element, markers }) {
-  if (prefersReducedMotion) {
+export default function IsoWorld({ accent, element, markers, dim = 1, paused = false }) {
+  const reducedMotion = useReducedMotion()
+
+  if (reducedMotion) {
     return (
       <div
         className="world"
@@ -376,16 +595,18 @@ export default function IsoWorld({ accent, element, markers }) {
   return (
     <div className="world" aria-hidden="true">
       <Canvas
+        frameloop={paused ? 'never' : 'always'}
         orthographic
         camera={{ position: [15, 13, 15], zoom: 38, near: -100, far: 300 }}
-        dpr={[1, 1.5]}
+        dpr={isMobileViewport ? [1, 1.25] : [1, 1.5]}
         gl={{
-          antialias: true,
+          // MSAA is the first thing worth dropping on a phone GPU
+          antialias: !isMobileViewport,
           powerPreference: 'high-performance',
           toneMapping: THREE.NoToneMapping,
         }}
       >
-        <Scene accent={accent} element={element} markers={markers} />
+        <Scene accent={accent} element={element} markers={markers} dim={dim} />
       </Canvas>
     </div>
   )
