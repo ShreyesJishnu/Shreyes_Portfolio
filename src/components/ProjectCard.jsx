@@ -5,12 +5,9 @@ import {
   previewFor,
   PLACEHOLDER_MAX_WIDTH,
 } from '../data/media'
+import { prefersReducedMotion as reducedMotion, isTouch } from '../scene/budget'
 
-const reducedMotion =
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-const isTouch = typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches
-
-export default function ProjectCard({ project, index, onOpen }) {
+export default function ProjectCard({ project, index, visited, onOpen }) {
   const poster = posterFor(project)
   const preview = previewFor(project)
   const [src, setSrc] = useState(poster)
@@ -37,6 +34,8 @@ export default function ProjectCard({ project, index, onOpen }) {
   return (
     <button
       className="card"
+      data-tier={project.tier}
+      data-visited={visited || undefined}
       onClick={() => onOpen(project)}
       onPointerEnter={engage}
       onPointerLeave={disengage}

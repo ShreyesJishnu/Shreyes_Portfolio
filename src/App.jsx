@@ -2,12 +2,20 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import Preloader from './components/Preloader'
 import ProjectSheet from './components/ProjectSheet'
 import ProjectCard from './components/ProjectCard'
+import Hud from './components/Hud'
+import { useVisited } from './data/visited'
 
-// Three.js is ~2/3 of the bundle. Splitting it out lets the type and content
-// paint immediately while the field streams in behind the preloader.
-const FieldBackground = lazy(() => import('./scene/FieldBackground'))
+// three is the whole 3D layer; lazy so type and content paint first
+const IsoWorld = lazy(() => import('./scene/IsoWorld'))
 import { elementConfigs, actOrder } from './scene/elementConfigs'
 import { projects } from './data/projects'
+
+// every chapter the HUD map plots, in reading order
+const hudSections = ['fire', ...actOrder].map((key) => ({
+  key,
+  index: elementConfigs[key].index,
+  title: elementConfigs[key].title,
+}))
 
 const stats = [
   { num: '6M+ Triangles', cap: 'Ray-traced @ 60 FPS' },
@@ -19,7 +27,15 @@ const stats = [
 export default function App() {
   const [active, setActive] = useState('fire')
   const [open, setOpen] = useState(null)
-  const energy = useRef(0)
+  const { visited, markVisited } = useVisited()
+
+  // opening a project is what counts as exploring it
+  const openProject = (p) => {
+    markVisited(p.slug)
+    setOpen(p)
+  }
+
+
   const actRefs = useRef({})
 
   // Which act is in the middle of the viewport drives the whole palette.
@@ -44,33 +60,36 @@ export default function App() {
     document.documentElement.style.setProperty('--text-accent', c.textAccent)
   }, [active])
 
-  // Scroll velocity feeds the shader's turbulence — the phone's replacement
-  // for cursor bending, and a free second layer of life on desktop.
+  // Where each chapter sits along the page, so the world can plant a marker at
+  // the same point the cube reaches it.
+  const [markers, setMarkers] = useState([])
   useEffect(() => {
-    let last = window.scrollY
-    let raf
-    const onScroll = () => {
-      const now = window.scrollY
-      energy.current = Math.min(1, energy.current + Math.abs(now - last) / 900)
-      last = now
+    const measure = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      if (max <= 0) return
+      setMarkers(
+        hudSections
+          .map(({ key, title }) => {
+            const el = actRefs.current[key]
+            return el ? { key, label: title, progress: el.offsetTop / max } : null
+          })
+          .filter(Boolean)
+      )
     }
-    const decay = () => {
-      energy.current *= 0.94
-      raf = requestAnimationFrame(decay)
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    raf = requestAnimationFrame(decay)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      cancelAnimationFrame(raf)
-    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
   }, [])
 
   return (
     <>
       <Preloader />
       <Suspense fallback={null}>
-        <FieldBackground config={elementConfigs[active]} energy={energy} />
+        <IsoWorld
+          accent={elementConfigs[active].accent}
+          element={active}
+          markers={markers}
+        />
       </Suspense>
       <div className="scrim" aria-hidden="true" />
 
@@ -82,12 +101,9 @@ export default function App() {
           data-element="fire"
           ref={(node) => (actRefs.current.hero = node)}
         >
-          <div className="hero__top">
-            <span className="label">Shreyes Jishnu</span>
-            <span className="label">Real-time graphics / gameplay</span>
-          </div>
-
           <div>
+            {/* the HUD carries the name visually; keep it in the document too */}
+            <span className="sr-only">Shreyes Jishnu — real-time graphics and gameplay engineer</span>
             <h1 className="hero__title">
               Worlds that hold up <span className="accent">at 60 fps or more</span>
             </h1>
@@ -158,7 +174,13 @@ export default function App() {
 
               <div className="cards">
                 {items.map((p, i) => (
-                  <ProjectCard key={p.slug} project={p} index={i} onOpen={setOpen} />
+                  <ProjectCard
+                    key={p.slug}
+                    project={p}
+                    index={i}
+                    visited={visited.has(p.slug)}
+                    onOpen={openProject}
+                  />
                 ))}
               </div>
             </section>
@@ -186,6 +208,8 @@ export default function App() {
           </div>
         </footer>
       </main>
+
+      <Hud act={elementConfigs[active].title} actIndex={elementConfigs[active].index} />
 
       {open && <ProjectSheet project={open} onClose={() => setOpen(null)} />}
     </>

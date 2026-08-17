@@ -1,22 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
-import {
-  posterFor,
-  posterFallbackFor,
-  previewFor,
-  PLACEHOLDER_MAX_WIDTH,
-} from '../data/media'
-
-const reducedMotion =
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
+import { useEffect, useRef } from 'react'
 const FOCUSABLE = 'a[href], button, iframe, [tabindex]:not([tabindex="-1"])'
 
 export default function ProjectSheet({ project, onClose }) {
   const panelRef = useRef(null)
-  const [playing, setPlaying] = useState(false)
   const hasStore = Boolean(project.playStore || project.appStore)
-  const preview = previewFor(project)
-  const [posterSrc, setPosterSrc] = useState(posterFor(project))
 
   useEffect(() => {
     // Remember where focus came from so closing returns the user to the row
@@ -26,7 +13,12 @@ export default function ProjectSheet({ project, onClose }) {
     panel?.querySelector(FOCUSABLE)?.focus()
 
     const onKey = (e) => {
-      if (e.key === 'Escape') return onClose()
+      if (e.key === 'Escape') {
+        // the console sits above the sheet; let the topmost overlay take the
+        // key rather than collapsing both at once
+        if (document.querySelector('.console')) return
+        return onClose()
+      }
       if (e.key !== 'Tab' || !panel) return
 
       const items = [...panel.querySelectorAll(FOCUSABLE)]
@@ -64,9 +56,10 @@ export default function ProjectSheet({ project, onClose }) {
         <h2 className="sheet__title">{project.title}</h2>
 
         {(project.youtube || !hasStore) && (
-        <div className="media">
-          {project.youtube ? (
-            playing ? (
+          <div className="media">
+            {project.youtube ? (
+              // Loads straight away: opening a project is itself the intent to
+              // watch, so a facade would only add a second click.
               <iframe
                 src={`https://www.youtube-nocookie.com/embed/${project.youtube}?autoplay=1&rel=0`}
                 title={`${project.title} — video`}
@@ -74,38 +67,9 @@ export default function ProjectSheet({ project, onClose }) {
                 allowFullScreen
               />
             ) : (
-              // Facade: the muted loop plays straight away so the sheet is
-              // never a dead frame, but YouTube's player (and its cookies)
-              // only load if the visitor actually asks for the full video.
-              <button className="media__play" onClick={() => setPlaying(true)}>
-                {posterSrc && (
-                  <img
-                    src={posterSrc}
-                    onLoad={(e) => {
-                      if (e.currentTarget.naturalWidth < PLACEHOLDER_MAX_WIDTH) {
-                        setPosterSrc(posterFallbackFor(project))
-                      }
-                    }}
-                    onError={() => setPosterSrc(posterFallbackFor(project))}
-                    alt=""
-                  />
-                )}
-                {preview && !reducedMotion && (
-                  <video src={preview} autoPlay muted loop playsInline preload="auto" />
-                )}
-                <span className="media__badge" aria-hidden="true">
-                  ▶
-                </span>
-                <span className="media__hint" aria-hidden="true">
-                  Watch full video
-                </span>
-                <span className="sr-only">Play {project.title} video on YouTube</span>
-              </button>
-            )
-          ) : (
-            <span className="label">Capture coming soon</span>
-          )}
-        </div>
+              <span className="label">Capture coming soon</span>
+            )}
+          </div>
         )}
 
         {hasStore && (

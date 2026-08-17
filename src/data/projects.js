@@ -2,11 +2,17 @@
 // facade, so YouTube's iframe only loads if a visitor actually hits play.
 // `playStore` / `appStore` are store urls for the live mobile titles; a
 // project with either renders store buttons instead of a video frame.
+//
+// `tier` is how far a project actually got, not how hard it was — shipped and
+// live outranks impressive-but-a-prototype. Drives the card frame colour:
+//   legendary  shipped and live      hero  strong prototype
+//   intermediate  solid build        noob  early work
 
 export const projects = [
   // 3D projects — rendering, engines, spatial systems
   {
     slug: 'stanford-dragon-raytracer',
+    tier: 'hero',
     youtube: 'J513nnZyh5o',
     element: 'water',
     title: 'Stanford Dragon RayTracer Realtime',
@@ -28,6 +34,7 @@ export const projects = [
   },
   {
     slug: 'reality-rip',
+    tier: 'hero',
     youtube: 'bUZ3hsKs1bw',
     element: 'water',
     title: 'Reality Rip',
@@ -51,6 +58,7 @@ export const projects = [
 
   {
     slug: '3d-runner-prototype',
+    tier: 'noob',
     youtube: 'p3frrQnwZK4',
     element: 'water',
     title: '3D Runner - Prototype',
@@ -66,6 +74,7 @@ export const projects = [
   },
   {
     slug: 'music-runner',
+    tier: 'intermediate',
     youtube: 'LyC_XwXKXJg',
     element: 'water',
     title: 'Music Runner',
@@ -76,6 +85,7 @@ export const projects = [
   },
   {
     slug: 'hd-camera-system',
+    tier: 'hero',
     youtube: 'NQzuiP2Xs3k',
     element: 'water',
     title: 'HD Camera System',
@@ -93,6 +103,7 @@ export const projects = [
 
   {
     slug: 'realmrush-tower-defence',
+    tier: 'intermediate',
     youtube: 'iHXCSTEHGSU',
     element: 'water',
     title: 'RealmRush - Tower Defence Game',
@@ -108,6 +119,7 @@ export const projects = [
   },
   {
     slug: 'warehouse-destructor',
+    tier: 'intermediate',
     youtube: '3dpeB9H_OIo',
     element: 'water',
     title: 'Warehouse Destructor',
@@ -124,6 +136,7 @@ export const projects = [
   },
   {
     slug: 'project-boost',
+    tier: 'noob',
     youtube: 'fBl6Gy_Csrc',
     element: 'water',
     title: 'Project Boost',
@@ -136,6 +149,7 @@ export const projects = [
   // VR projects
   {
     slug: 'boxing',
+    tier: 'legendary',
     youtube: 'bdCX0R6PWlQ',
     element: 'air',
     title: 'Boxing',
@@ -151,6 +165,7 @@ export const projects = [
   },
   {
     slug: 'kayaking',
+    tier: 'legendary',
     youtube: 'FnLLU3R1FaQ',
     element: 'air',
     title: 'Kayaking',
@@ -167,6 +182,7 @@ export const projects = [
   },
   {
     slug: 'track-the-snitch',
+    tier: 'legendary',
     youtube: 'wxkBp9qPe38',
     element: 'air',
     title: 'Track The Snitch',
@@ -179,6 +195,7 @@ export const projects = [
   // 2D projects — current commercial mobile work
   {
     slug: 'ludo-superstar',
+    tier: 'legendary',
     playStore: 'https://play.google.com/store/apps/details?id=com.blacklightsw.ludo',
     appStore: 'https://apps.apple.com/in/app/ludo-superstar/id1314264574',
     element: 'earth',
@@ -196,6 +213,7 @@ export const projects = [
   },
   {
     slug: 'parchisi-superstar',
+    tier: 'legendary',
     playStore: 'https://play.google.com/store/apps/details?id=com.bsw.parchisi',
     appStore: 'https://apps.apple.com/in/app/parchisi-superstar/id6759275686',
     element: 'earth',
@@ -213,6 +231,7 @@ export const projects = [
   },
   {
     slug: 'snake-prototype',
+    tier: 'intermediate',
     youtube: '1z8bZxn2y1k',
     element: 'earth',
     title: 'Snake Prototype',
