@@ -101,6 +101,15 @@ export default function App() {
       </Suspense>
       <div className="scrim" aria-hidden="true" />
 
+      {/* first in the DOM as well as at the top of the screen: getting in touch
+          should not cost a scroll to the bottom, or a tab through every card */}
+      <a className="hud-contact" href="#contact">
+        <span className="hud-contact__label">Get in touch</span>
+        <span className="hud-contact__mark" aria-hidden="true">
+          ↓
+        </span>
+      </a>
+
       <main className="shell">
         {/* observed like an act, so scrolling back to the top restores fire
             instead of stranding the palette on whichever act fired last */}
@@ -193,7 +202,7 @@ export default function App() {
           )
         })}
 
-        <footer className="contact" data-element="air" ref={tailRef}>
+        <footer className="contact" id="contact" data-element="air" ref={tailRef}>
           <span className="label">Get in touch</span>
           <p className="contact__lead">
             Got something ambitious? <span className="accent">Let’s build it.</span>
