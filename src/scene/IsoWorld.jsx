@@ -295,9 +295,17 @@ const MOTE_FRAG = /* glsl */ `
     vec2 c = gl_PointCoord - 0.5;
     float d = length(c);
     if (d > 0.5) discard;
-    // soft round falloff, hottest at the core
-    float falloff = smoothstep(0.5, 0.0, d);
+    // Two-part falloff makes the glow: a tight bright core plus a wide, weak
+    // halo. One smoothstep alone gives a flat disc that reads as a dot.
+    float core = smoothstep(0.5, 0.08, d);
+    float halo = smoothstep(0.5, 0.0, d);
+    halo *= halo;
+    float falloff = halo * 0.45 + core * 0.75;
+
     vec3 col = mix(uCool, uHot, vLife * vLife);
+    // the core burns toward white so it blooms under additive blending
+    col = mix(col, col + vec3(0.55), core * 0.6);
+
     gl_FragColor = vec4(col, falloff * vLife * uOpacity);
   }
 `

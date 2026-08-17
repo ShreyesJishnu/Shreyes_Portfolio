@@ -20,7 +20,7 @@ export const elementConfigs = {
     alphaBase: 0.4,
   },
   water: {
-    index: '03',
+    index: '04',
     title: '3D Projects',
     note: 'Real-time rendering, engine work, and 3D gameplay — ray tracing, camera systems, and physics sandboxes in Unity and Unreal.',
     accent: '#4fb8d6',
@@ -38,7 +38,7 @@ export const elementConfigs = {
     alphaBase: 0.35,
   },
   earth: {
-    index: '04',
+    index: '03',
     title: '2D Projects',
     note: 'Live mobile titles — real players, real retention, and the constraints that come with shipping to a store rather than a showcase.',
     accent: '#8a9a5b',
@@ -76,4 +76,4 @@ export const elementConfigs = {
 }
 
 // fire is the About chapter; these three are the project categories
-export const actOrder = ['air', 'water', 'earth']
+export const actOrder = ['air', 'earth', 'water']

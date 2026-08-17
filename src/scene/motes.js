@@ -13,7 +13,7 @@ import { isMobileViewport } from './budget'
 
 // Phones run the same shader on a fraction of the pool: the field still reads
 // as an environment, without spending the frame budget the headline claims.
-export const MOTE_COUNT = isMobileViewport ? 550 : 1400
+export const MOTE_COUNT = isMobileViewport ? 850 : 2200
 
 // Particles are the environment, not an effect on the player. They spawn in the
 // terrain flanking the route — never on it — so the cube travels through them.

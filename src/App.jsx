@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import Preloader from './components/Preloader'
 import ProjectSheet from './components/ProjectSheet'
-import ProjectCard from './components/ProjectCard'
+import CardRail from './components/CardRail'
 import Hud from './components/Hud'
 import { useVisited } from './data/visited'
 
@@ -37,6 +37,8 @@ export default function App() {
 
 
   const actRefs = useRef({})
+  // observed alongside the acts, but kept out of actRefs so it never becomes a marker
+  const tailRef = useRef(null)
 
   // Which act is in the middle of the viewport drives the whole palette.
   useEffect(() => {
@@ -49,6 +51,7 @@ export default function App() {
       { rootMargin: '-45% 0px -45% 0px' }
     )
     Object.values(actRefs.current).forEach((el) => el && observer.observe(el))
+    if (tailRef.current) observer.observe(tailRef.current)
     return () => observer.disconnect()
   }, [])
 
@@ -172,36 +175,25 @@ export default function App() {
               ref={(node) => (actRefs.current[el] = node)}
             >
               <div className="act__head">
-                <span className="label accent">// {config.index}</span>
-                <h2 className="act__title">{config.title}</h2>
+                {/* the HUD banner carries the chapter visually; the document
+                    still needs the heading to keep its outline */}
+                <h2 className="sr-only">{config.title}</h2>
                 <p className="act__note">{config.note}</p>
               </div>
 
-              {/* long categories scroll within themselves */}
-              <div
-                className="cards"
-                data-scroll={items.length > 4 || undefined}
-                // a scrollable region has to be reachable without a pointer
-                tabIndex={items.length > 4 ? 0 : undefined}
-                role={items.length > 4 ? 'group' : undefined}
-                aria-label={items.length > 4 ? config.title : undefined}
-              >
-                {items.map((p, i) => (
-                  <ProjectCard
-                    key={p.slug}
-                    project={p}
-                    index={i}
-                    visited={visited.has(p.slug)}
-                    onOpen={openProject}
-                    paused={paused}
-                  />
-                ))}
-              </div>
+              {/* three across, the rest a wheel away */}
+              <CardRail
+                label={config.title}
+                items={items}
+                visited={visited}
+                onOpen={openProject}
+                paused={paused}
+              />
             </section>
           )
         })}
 
-        <footer className="contact">
+        <footer className="contact" data-element="air" ref={tailRef}>
           <span className="label">Get in touch</span>
           <p className="contact__lead">
             Got something ambitious? <span className="accent">Let’s build it.</span>

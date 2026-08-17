@@ -7,7 +7,7 @@ import {
 } from '../data/media'
 import { useReducedMotion, isTouch } from '../scene/budget'
 
-export default function ProjectCard({ project, index, visited, onOpen, paused }) {
+export default function ProjectCard({ project, index, visited, onOpen, paused, scrollRoot }) {
   const reducedMotion = useReducedMotion()
   const poster = posterFor(project)
   const preview = previewFor(project)
@@ -16,17 +16,18 @@ export default function ProjectCard({ project, index, visited, onOpen, paused })
   const frameRef = useRef(null)
   const hasStore = Boolean(project.playStore || project.appStore)
 
-  // Touch devices have no hover, so drive the loop from visibility instead —
-  // one card at a time, and never all of them at once.
+  // Touch devices have no hover, so drive the loop from visibility instead.
+  // Measured against the rail's own centre band rather than the viewport: three
+  // cards share a row, so a viewport test would start all three at once.
   useEffect(() => {
     if (!preview || reducedMotion || paused || !isTouch || !frameRef.current) return
     const observer = new IntersectionObserver(
       ([entry]) => setActive(entry.isIntersecting),
-      { rootMargin: '-35% 0px -35% 0px' }
+      { root: scrollRoot?.current || null, rootMargin: '0px -40% 0px -40%' }
     )
     observer.observe(frameRef.current)
     return () => observer.disconnect()
-  }, [preview, reducedMotion, paused])
+  }, [preview, reducedMotion, paused, scrollRoot])
 
   const canPreview = Boolean(preview) && !reducedMotion && !paused
   const engage = () => canPreview && !isTouch && setActive(true)

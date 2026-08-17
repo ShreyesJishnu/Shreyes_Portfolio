@@ -187,7 +187,7 @@ body {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
   padding-block: clamp(1.5rem, 4vh, 3rem) clamp(1.5rem, 5vh, 3rem);
 }
 
@@ -291,31 +291,18 @@ body {
 /* ---------- acts ---------- */
 
 .act {
-  padding-block: clamp(4rem, 14vh, 10rem);
+  padding-block: clamp(3rem, 10vh, 7rem);
   border-top: var(--rule);
 }
 
 .act__head {
-  display: flex;
-  align-items: baseline;
-  gap: clamp(0.75rem, 2vw, 1.5rem);
-  flex-wrap: wrap;
-  margin-bottom: clamp(2rem, 6vh, 4rem);
-}
-
-.act__title {
-  font-size: var(--t-act);
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  margin: 0;
+  margin-bottom: clamp(1.25rem, 3vh, 2rem);
 }
 
 .act__note {
   color: var(--muted);
   max-width: 42ch;
-  margin: 0.75rem 0 0;
-  flex-basis: 100%;
+  margin: 0;
 }
 
 /* ---------- project rows ---------- */
@@ -326,33 +313,55 @@ body {
 /* ---------- project cards ---------- */
 
 .cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-  gap: clamp(0.75rem, 1.5vw, 1.25rem);
-}
+  --card-gap: clamp(0.75rem, 1.5vw, 1.25rem);
 
-/* Acts with more than four projects scroll within themselves, so one long
-   category cannot push the rest of the page out of reach. */
-.cards[data-scroll='true'] {
-  max-height: 68vh;
-  overflow-y: auto;
-  /* the page scroll drives the world, so chaining out of this list would lurch
-     the cube the moment the list bottoms out */
-  overscroll-behavior: contain;
-  padding-right: 0.4rem;
+  display: grid;
+  grid-auto-flow: column;
+  /* exactly three across, so a section of three fills the rail with no dead
+     slot and a longer one carries the fourth just past the edge */
+  grid-auto-columns: calc((100% - 2 * var(--card-gap)) / 3);
+  gap: var(--card-gap);
+
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* the page scroll drives the world; contain keeps the rail's ends from
+     turning into a browser back-swipe */
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  padding-bottom: 0.6rem;
   scrollbar-width: thin;
   scrollbar-color: var(--hairline) transparent;
-  /* fade the cut edge so it reads as continuing, not clipped */
-  mask-image: linear-gradient(to bottom, #000 92%, transparent 100%);
 }
 
-.cards[data-scroll='true']::-webkit-scrollbar {
-  width: 6px;
+.cards > * {
+  scroll-snap-align: start;
 }
 
-.cards[data-scroll='true']::-webkit-scrollbar-thumb {
+.cards:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 4px;
+}
+
+.cards::-webkit-scrollbar {
+  height: 6px;
+}
+
+.cards::-webkit-scrollbar-thumb {
   background: var(--hairline);
   border-radius: 3px;
+}
+
+@media (max-width: 900px) {
+  .cards {
+    /* two and a peek: three would leave each card too narrow to read */
+    grid-auto-columns: calc((100% - 2 * var(--card-gap)) / 2.2);
+  }
+}
+
+@media (max-width: 640px) {
+  .cards {
+    grid-auto-columns: calc(100% - 3rem);
+  }
 }
 
 .card {
@@ -820,10 +829,10 @@ body {
   z-index: 40;
   display: flex;
   align-items: baseline;
-  gap: 0.7rem;
-  padding: 0.5rem 1.1rem;
+  gap: clamp(0.7rem, 1.4vw, 1.1rem);
+  padding: clamp(0.7rem, 1.4vh, 1rem) clamp(1.2rem, 2.6vw, 2rem);
   border: 1px solid var(--hairline);
-  border-radius: 6px;
+  border-radius: 8px;
   background: rgba(8, 8, 10, 0.82);
   backdrop-filter: blur(8px);
   font-family: var(--mono);
@@ -834,13 +843,13 @@ body {
 }
 
 .hud-title__idx {
-  font-size: 0.72rem;
+  font-size: clamp(0.85rem, 1.3vw, 1.1rem);
   color: var(--text-accent);
   transition: color 0.6s ease;
 }
 
 .hud-title__name {
-  font-size: clamp(0.95rem, 1.9vw, 1.45rem);
+  font-size: clamp(1.35rem, 2.9vw, 2.35rem);
   font-weight: 500;
   color: var(--text);
   animation: zoneIn 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -855,7 +864,6 @@ body {
 
 @media (max-width: 640px) {
   .hud-title {
-    padding: 0.35rem 0.75rem;
     letter-spacing: 0.14em;
   }
 }
@@ -864,7 +872,7 @@ body {
   /* the banner is fixed at the top on phones, where the column is full width —
      without this reservation it lands across the first line of the h1 */
   .hero {
-    padding-block-start: 4.5rem;
+    padding-block-start: 6.5rem;
   }
 }
 
