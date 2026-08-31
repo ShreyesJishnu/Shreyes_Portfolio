@@ -178,6 +178,7 @@ export const projects = [
   {
     slug: 'ludo-superstar',
     tier: 'legendary',
+    poster: 'posters/ludo-superstar.webp',
     playStore: 'https://play.google.com/store/apps/details?id=com.blacklightsw.ludo',
     appStore: 'https://apps.apple.com/in/app/ludo-superstar/id1314264574',
     element: 'earth',
@@ -196,6 +197,7 @@ export const projects = [
   {
     slug: 'parchisi-superstar',
     tier: 'legendary',
+    poster: 'posters/parchisi-superstar.webp',
     playStore: 'https://play.google.com/store/apps/details?id=com.bsw.parchisi',
     appStore: 'https://apps.apple.com/in/app/parchisi-superstar/id6759275686',
     element: 'earth',

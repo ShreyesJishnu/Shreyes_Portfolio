@@ -12,7 +12,9 @@
 const YT = 'https://i.ytimg.com/vi'
 
 export function posterFor(project) {
-  if (project.poster) return project.poster
+  // BASE_URL so a /public poster resolves under a /repo/ subpath on Pages,
+  // the same way previews do
+  if (project.poster) return `${import.meta.env.BASE_URL}${project.poster}`
   // maxres is 1280x720; not every upload has it, hence posterFallbackFor
   if (project.youtube) return `${YT}/${project.youtube}/maxresdefault.jpg`
   return null

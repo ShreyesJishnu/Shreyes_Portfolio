@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react'
+import { posterFor } from '../data/media'
 const FOCUSABLE = 'a[href], button, iframe, [tabindex]:not([tabindex="-1"])'
 
 export default function ProjectSheet({ project, onClose }) {
   const panelRef = useRef(null)
   const hasStore = Boolean(project.playStore || project.appStore)
+  const poster = posterFor(project)
 
   useEffect(() => {
     // Remember where focus came from so closing returns the user to the row
@@ -62,7 +64,7 @@ export default function ProjectSheet({ project, onClose }) {
 
         <h2 className="sheet__title">{project.title}</h2>
 
-        {(project.youtube || !hasStore) && (
+        {(project.youtube || poster || !hasStore) && (
           <div className="media">
             {project.youtube ? (
               // Loads straight away: opening a project is itself the intent to
@@ -73,6 +75,9 @@ export default function ProjectSheet({ project, onClose }) {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
+            ) : poster ? (
+              // the live titles have no video, so the store capture stands in
+              <img src={poster} alt={`${project.title} gameplay`} loading="lazy" />
             ) : (
               <span className="label">Capture coming soon</span>
             )}
