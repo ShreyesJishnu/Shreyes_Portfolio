@@ -566,8 +566,10 @@ function ElementMotes({ accent, element, travel, dim }) {
 // of the left content column.
 const WORLD_SHIFT = 0.26
 
-// How far down the phone panel the cube sits, as a fraction of panel height.
-const MOBILE_DROP = 0.16
+// How far below centre the cube sits on a phone, as a fraction of viewport
+// height. It was 0.16 to clear the top of a half-height panel; full-bleed that
+// same fraction is twice the pixels and pushes the cube near the bottom edge.
+const MOBILE_DROP = 0.06
 
 // Orthographic camera holding the iso angle while tracking the cube through its
 // turns — the offset is fixed, so the projection itself never rotates.
@@ -586,7 +588,7 @@ function IsoCamera({ travel }) {
     // desktop frames off width; the phone panel is short and wide, so its zoom
     // follows height or the cube ends up a speck
     camera.zoom = isMobileViewport
-      ? Math.max(24, Math.min(40, size.height / 13))
+      ? Math.max(24, Math.min(40, size.height / 22))
       : Math.max(26, Math.min(46, size.width / 26))
 
     // Push the route into the right-hand band so it never runs under the

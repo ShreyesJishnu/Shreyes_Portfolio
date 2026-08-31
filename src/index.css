@@ -133,24 +133,24 @@ body {
    in the top half, the world holds the bottom half and never moves. Nothing
    overlaps, so none of the desktop scrim work applies here. */
 @media (max-width: 768px) {
+  /* Phone: the world goes back to full-bleed and sits behind everything, so the
+     content owns the whole page instead of the top two thirds. It reads through
+     the type rather than being boxed off below it, which is why it is dimmed
+     here and veiled by the scrim rather than masked away. */
   .world {
-    inset: auto 0 0 0;
-    height: 44svh;
-    z-index: 5;
-    background: var(--bg);
-    /* One mask on the container fades the backdrop and the canvas together, so
-       the content dissolves as the world resolves. A hard edge — border or
-       otherwise — reads as two stacked screens rather than one scene. */
-    mask-image: linear-gradient(to bottom, transparent 0%, #000 26%);
+    opacity: 0.5;
   }
 
   .scrim {
-    display: none;
-  }
-
-  /* only the solid part of the panel actually hides anything */
-  main {
-    padding-bottom: 34svh;
+    /* Content runs the full width on a phone, so the desktop's left-to-right
+       ramp has no clear side to fade toward. An even veil instead, lifted
+       slightly at the very bottom where there is usually no text. */
+    background: linear-gradient(
+      to bottom,
+      rgba(10, 10, 11, 0.62) 0%,
+      rgba(10, 10, 11, 0.62) 78%,
+      rgba(10, 10, 11, 0.42) 100%
+    );
   }
 }
 
@@ -1282,14 +1282,13 @@ body {
 }
 
 @media (max-width: 768px) {
-  /* over the world panel rather than the content half — the canvas is
-     decorative, the text is not */
+  /* Cornered rather than centred: with content running the full height this
+     control now floats over text, so it takes the least intrusive corner
+     instead of spanning the width. */
   .hud-stack {
     z-index: 40;
-    left: 0;
-    right: 0;
-    bottom: 1.5rem;
-    align-items: center;
+    bottom: 1.25rem;
+    align-items: flex-end;
   }
 
   .hud__motion {
@@ -1305,9 +1304,9 @@ body {
     font-size: 0.85em;
   }
 
-  /* the hero owns the content half, not the whole screen */
+  /* the world no longer takes a slice of the screen, so the hero gets it back */
   .hero {
-    min-height: 62svh;
+    min-height: 100svh;
     padding-block-start: 5rem;
   }
 }
