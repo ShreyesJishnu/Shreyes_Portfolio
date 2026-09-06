@@ -863,6 +863,13 @@ body {
   padding-block: clamp(4rem, 14vh, 9rem) clamp(2rem, 6vh, 4rem);
 }
 
+@media (max-width: 768px) {
+  /* the HUD floats over this corner, so the last links need room below them */
+  .contact {
+    padding-bottom: 6rem;
+  }
+}
+
 .contact__lead {
   font-size: var(--t-act);
   font-weight: 500;
@@ -1307,26 +1314,46 @@ body {
 }
 
 @media (max-width: 768px) {
-  /* Cornered rather than centred: with content running the full height this
-     control now floats over text, so it takes the least intrusive corner
-     instead of spanning the width. */
+  /* Two labelled pills stacked in the corner covered the contact links at the
+     bottom of the page. On a phone they drop to icons and sit side by side, so
+     the footprint goes from two rows of text to one row of squares. */
   .hud-stack {
     z-index: 40;
     bottom: 1.25rem;
-    align-items: flex-end;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* the stats readout is a desktop flourish and has no room in a single row */
+  .hud {
+    display: none;
   }
 
   .hud__motion {
-    gap: 0.6rem;
-    padding: 0.9rem 1.6rem;
-    min-height: 54px;
-    border-radius: 10px;
-    font-size: 0.82rem;
-    letter-spacing: 0.16em;
+    gap: 0;
+    padding: 0;
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    min-height: 48px;
+    justify-content: center;
+    border-radius: 12px;
+  }
+
+  /* the label still names the control for assistive tech, it just stops
+     taking horizontal space */
+  .hud__motionLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .hud__motionIcon {
-    font-size: 0.85em;
+    font-size: 1.05rem;
   }
 
   /* the world no longer takes a slice of the screen, so the hero gets it back */
