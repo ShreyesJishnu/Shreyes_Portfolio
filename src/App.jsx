@@ -4,6 +4,7 @@ import ProjectSheet from './components/ProjectSheet'
 import CardRail from './components/CardRail'
 import Hud from './components/Hud'
 import { useVisited } from './data/visited'
+import { useTheme } from './theme'
 
 // three is the whole 3D layer; lazy so type and content paint first
 const IsoWorld = lazy(() => import('./scene/IsoWorld'))
@@ -36,6 +37,7 @@ export default function App() {
   }
 
 
+  const { theme, toggle: toggleTheme } = useTheme()
   const actRefs = useRef({})
   // observed alongside the acts, but kept out of actRefs so it never becomes a marker
   const tailRef = useRef(null)
@@ -57,11 +59,17 @@ export default function App() {
 
   useEffect(() => {
     const c = elementConfigs[active]
-    document.documentElement.style.setProperty('--accent', c.accent)
+    // the dark pair is tuned against black; on paper the same hues have to be
+    // darkened or they fail contrast outright
+    const light = theme === 'light'
+    document.documentElement.style.setProperty('--accent', light ? c.accentLight : c.accent)
     // text uses the opposing hue so it reads against the field instead of
     // dissolving into it
-    document.documentElement.style.setProperty('--text-accent', c.textAccent)
-  }, [active])
+    document.documentElement.style.setProperty(
+      '--text-accent',
+      light ? c.textAccentLight : c.textAccent
+    )
+  }, [active, theme])
 
   // Where each chapter sits along the page, so the world can plant a marker at
   // the same point the cube reaches it.
@@ -97,6 +105,7 @@ export default function App() {
           // chapters with a card grid dim the particles behind it
           dim={active === 'fire' ? 1 : 0.85}
           paused={paused}
+          theme={theme}
         />
       </Suspense>
       <div className="scrim" aria-hidden="true" />
@@ -229,6 +238,8 @@ export default function App() {
         actIndex={elementConfigs[active].index}
         paused={paused}
         onTogglePause={() => setPaused((v) => !v)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {open && <ProjectSheet project={open} onClose={() => setOpen(null)} />}

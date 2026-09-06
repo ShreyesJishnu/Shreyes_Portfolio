@@ -4,7 +4,14 @@
 @import '@fontsource/jetbrains-mono/latin-500.css';
 
 :root {
-  --bg: #0a0a0b;
+  /* Dark is the site's own identity, so it is the base set and light overrides
+     it. Grounds are kept as rgb triplets because the scrim, the panels and the
+     card frames all need the same colour at their own alpha. */
+  --bg-rgb: 10 10 11;
+  --panel-rgb: 8 8 10;
+  --tint-rgb: 255 255 255;
+
+  --bg: rgb(var(--bg-rgb));
   --text: #f4f2ee;
   --muted: #b4b0a8;
   --hairline: rgba(233, 231, 226, 0.18);
@@ -31,6 +38,22 @@
 
   --gutter: clamp(1.25rem, 5vw, 5rem);
   --rule: 1px solid var(--hairline);
+}
+
+/* Light is a deliberate second identity, not an inversion: grounds go warm
+   neutral, panels go solid white so cards still separate from the world behind
+   them, and the hairline flips from a light veil to a dark one. */
+:root[data-theme='light'] {
+  --bg-rgb: 238 239 236;
+  --panel-rgb: 255 255 255;
+  --tint-rgb: 16 18 22;
+
+  --text: #14161a;
+  --muted: #55595e;
+  --hairline: rgba(20, 22, 28, 0.18);
+
+  --surface: #ffffff;
+  --surface-raised: #f6f7f5;
 }
 
 * {
@@ -79,11 +102,11 @@ body {
      reads clean on the right — the old ramp left text at 0.05 coverage */
   background: linear-gradient(
     100deg,
-    rgba(10, 10, 11, 0.94) 0%,
-    rgba(10, 10, 11, 0.9) 45%,
-    rgba(10, 10, 11, 0.75) 64%,
-    rgba(10, 10, 11, 0.25) 80%,
-    rgba(10, 10, 11, 0) 92%
+    rgb(var(--bg-rgb) / 0.94) 0%,
+    rgb(var(--bg-rgb) / 0.9) 45%,
+    rgb(var(--bg-rgb) / 0.75) 64%,
+    rgb(var(--bg-rgb) / 0.25) 80%,
+    rgb(var(--bg-rgb) / 0) 92%
   );
 }
 
@@ -147,9 +170,9 @@ body {
        slightly at the very bottom where there is usually no text. */
     background: linear-gradient(
       to bottom,
-      rgba(10, 10, 11, 0.62) 0%,
-      rgba(10, 10, 11, 0.62) 78%,
-      rgba(10, 10, 11, 0.42) 100%
+      rgb(var(--bg-rgb) / 0.62) 0%,
+      rgb(var(--bg-rgb) / 0.62) 78%,
+      rgb(var(--bg-rgb) / 0.42) 100%
     );
   }
 }
@@ -218,7 +241,7 @@ body {
 
 .hero__title {
   /* it now extends past the scrim's plateau, so it carries its own contrast */
-  text-shadow: 0 2px 30px rgba(10, 10, 11, 0.9);
+  text-shadow: 0 2px 30px rgb(var(--bg-rgb) / 0.9);
   font-size: var(--t-hero);
   line-height: 0.92;
   letter-spacing: -0.03em;
@@ -469,7 +492,7 @@ body {
   overflow: hidden;
   border: var(--rule);
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--tint-rgb) / 0.02);
   transition: border-color 0.3s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -573,9 +596,9 @@ body {
   place-content: center;
   font-size: 0.7rem;
   color: var(--text);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgb(var(--tint-rgb) / 0.3);
   border-radius: 50%;
-  background: rgba(10, 10, 11, 0.55);
+  background: rgb(var(--bg-rgb) / 0.55);
   backdrop-filter: blur(3px);
   transition: border-color 0.3s ease, background 0.3s ease;
 }
@@ -617,7 +640,7 @@ body {
 
 .card__badge {
   border-color: var(--text-accent);
-  background: rgba(10, 10, 11, 0.25);
+  background: rgb(var(--bg-rgb) / 0.25);
 }
 
 .card__body {
@@ -660,7 +683,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(10, 10, 11, 0.82);
+  background: rgb(var(--bg-rgb) / 0.82);
   backdrop-filter: blur(14px);
   display: flex;
   justify-content: flex-end;
@@ -727,7 +750,7 @@ body {
   width: 100%;
   aspect-ratio: 16 / 9;
   border: var(--rule);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgb(var(--tint-rgb) / 0.02);
   /* grid without place-content: tracks must stretch, or the thumbnail and the
      player both sit at intrinsic size in the middle of an empty box */
   display: grid;
@@ -784,7 +807,7 @@ body {
 .store-btn:focus-visible {
   color: var(--text-accent);
   border-color: var(--text-accent);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(var(--tint-rgb) / 0.03);
 }
 
 .sr-only {
@@ -909,7 +932,7 @@ body {
   padding: clamp(0.7rem, 1.4vh, 1rem) clamp(1.2rem, 2.6vw, 2rem);
   border: 1px solid var(--hairline);
   border-radius: 8px;
-  background: rgba(8, 8, 10, 0.82);
+  background: rgb(var(--panel-rgb) / 0.82);
   backdrop-filter: blur(8px);
   font-family: var(--mono);
   text-transform: uppercase;
@@ -968,7 +991,7 @@ body {
   width: 12.5rem;
   border: 1px solid var(--hairline);
   border-radius: 6px;
-  background: rgba(8, 8, 10, 0.82);
+  background: rgb(var(--panel-rgb) / 0.82);
   backdrop-filter: blur(8px);
   overflow: hidden;
   font-family: var(--mono);
@@ -1103,7 +1126,7 @@ body {
   padding: 0.6rem 1rem;
   border: 1px solid var(--hairline);
   border-radius: 8px;
-  background: rgba(8, 8, 10, 0.82);
+  background: rgb(var(--panel-rgb) / 0.82);
   backdrop-filter: blur(8px);
   color: var(--muted);
   font-family: var(--mono);
@@ -1118,7 +1141,7 @@ body {
 .hud-contact:focus-visible {
   color: var(--text);
   border-color: var(--text-accent);
-  background: color-mix(in srgb, var(--text-accent) 12%, rgba(8, 8, 10, 0.82));
+  background: color-mix(in srgb, var(--text-accent) 12%, rgb(var(--panel-rgb) / 0.82));
 }
 
 .hud-contact:focus-visible {
@@ -1167,7 +1190,7 @@ body {
   min-height: 44px;
   border: 1px solid var(--hairline);
   border-radius: 6px;
-  background: rgba(8, 8, 10, 0.82);
+  background: rgb(var(--panel-rgb) / 0.82);
   backdrop-filter: blur(8px);
   color: var(--muted);
   font-family: var(--mono);
@@ -1182,7 +1205,7 @@ body {
 .hud__motion:focus-visible {
   color: var(--text);
   border-color: var(--text-accent);
-  background: color-mix(in srgb, var(--text-accent) 12%, rgba(8, 8, 10, 0.82));
+  background: color-mix(in srgb, var(--text-accent) 12%, rgb(var(--panel-rgb) / 0.82));
 }
 
 .hud__motion:focus-visible {
@@ -1215,7 +1238,7 @@ body {
   width: min(34rem, calc(100vw - 2rem));
   border: 1px solid var(--text-accent);
   border-radius: 6px;
-  background: rgba(8, 8, 10, 0.94);
+  background: rgb(var(--panel-rgb) / 0.94);
   box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.95);
   overflow: hidden;
   animation: consoleIn 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);

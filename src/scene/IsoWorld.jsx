@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { isMobileViewport, useReducedMotion, STAR_COUNT } from './budget'
 import { PATH_LENGTH, TILE, pathAt, tileGrid, distanceToPath } from './path'
-import { MOTE_COUNT, PATH_CLEARANCE, ruleFor, heatFor } from './motes'
+import { MOTE_COUNT, PATH_CLEARANCE, ruleFor, heatForTheme } from './motes'
 
 // A minimal isometric world: real 3D geometry under an orthographic camera at
 // the classic iso angle. Scroll drives how far the cube has travelled along a
@@ -41,7 +41,7 @@ function TravelDriver({ progress, travel }) {
 // stripe across it. A plane fills the frame instead, recentred on the cube each
 // frame so it never runs out. The stars stay world-fixed, which is what makes
 // the movement legible on an otherwise featureless surface.
-function GroundPlane({ travel }) {
+function GroundPlane({ travel, theme }) {
   const ref = useRef(null)
   const focus = useMemo(() => new THREE.Vector3(), [])
   const dir = useMemo(() => new THREE.Vector3(), [])
@@ -59,7 +59,7 @@ function GroundPlane({ travel }) {
           on top of its base colour, so it renders lighter than the page no
           matter what hex it is given — matching the tone means opting out of
           the lighting, not picking a darker colour. */}
-      <meshBasicMaterial color="#0a0a0b" />
+      <meshBasicMaterial color={sceneFor(theme).ground} />
     </mesh>
   )
 }
@@ -69,7 +69,7 @@ function GroundPlane({ travel }) {
 //
 // Instanced: there are several hundred tiles and earth needs to shake the ones
 // near the cube every frame, which is far too much for individual meshes.
-function Ground({ element, travel }) {
+function Ground({ element, travel, theme }) {
   const tilesRef = useRef(null)
   const scatterRef = useRef(null)
   const dummy = useMemo(() => new THREE.Object3D(), [])
@@ -148,19 +148,19 @@ function Ground({ element, travel }) {
     <group>
       <instancedMesh ref={tilesRef} args={[undefined, undefined, tiles.length]} frustumCulled={false}>
         <boxGeometry args={[TILE, 0.12, TILE]} />
-        <meshStandardMaterial color="#1c1c22" roughness={0.9} flatShading />
+        <meshStandardMaterial color={sceneFor(theme).tile} roughness={0.9} flatShading />
       </instancedMesh>
 
       <instancedMesh ref={placeScatter} args={[undefined, undefined, scatter.length]} frustumCulled={false}>
         <boxGeometry args={[TILE * 0.72, 0.5, TILE * 0.72]} />
-        <meshStandardMaterial color="#141418" roughness={1} flatShading />
+        <meshStandardMaterial color={sceneFor(theme).scatter} roughness={1} flatShading />
       </instancedMesh>
     </group>
   )
 }
 
 // One pillar per chapter, standing beside the route at that chapter's distance.
-function Markers({ markers, accent, travel }) {
+function Markers({ markers, accent, travel, theme }) {
   const group = useRef(null)
 
   const placed = useMemo(
@@ -194,7 +194,7 @@ function Markers({ markers, accent, travel }) {
         <mesh key={p.key} position={[p.x, 1.1, p.z]}>
           <boxGeometry args={[0.22, 2.2, 0.22]} />
           <meshStandardMaterial
-            color="#0e0e12"
+            color={sceneFor(theme).marker}
             emissive={accent}
             emissiveIntensity={0.05}
             flatShading
@@ -248,7 +248,7 @@ function Cube({ accent, travel }) {
   )
 }
 
-function Stars() {
+function Stars({ theme }) {
   const geometry = useMemo(() => {
     const g = new THREE.BufferGeometry()
     const pos = new Float32Array(STAR_COUNT * 3)
@@ -263,7 +263,13 @@ function Stars() {
 
   return (
     <points geometry={geometry}>
-      <pointsMaterial size={1.6} color="#ffffff" transparent opacity={0.55} sizeAttenuation={false} />
+      <pointsMaterial
+        size={1.6}
+        color={sceneFor(theme).star}
+        transparent
+        opacity={sceneFor(theme).starOpacity}
+        sizeAttenuation={false}
+      />
     </points>
   )
 }
@@ -339,7 +345,7 @@ const MOTE_FRAG = /* glsl */ `
 
 // Motes rising off the ground. One pool, four behaviours — see motes.js. They
 // spawn around wherever the cube is, so they are always in frame.
-function ElementMotes({ accent, element, travel, dim }) {
+function ElementMotes({ accent, element, travel, dim, theme }) {
   const matRef = useRef(null)
   const focus = useMemo(() => new THREE.Vector3(), [])
   const dir = useMemo(() => new THREE.Vector3(), [])
@@ -537,7 +543,7 @@ function ElementMotes({ accent, element, travel, dim }) {
     geometry.attributes.position.needsUpdate = true
     geometry.attributes.aLife.needsUpdate = true
 
-    const heat = heatFor(rule, accent)
+    const heat = heatForTheme(rule, accent, theme)
     const u = matRef.current?.uniforms
     if (u) {
       u.uSize.value += (rule.size - u.uSize.value) * 0.06
@@ -556,7 +562,7 @@ function ElementMotes({ accent, element, travel, dim }) {
         uniforms={uniforms}
         transparent
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={theme === 'light' ? THREE.NormalBlending : THREE.AdditiveBlending}
       />
     </points>
   )
@@ -564,6 +570,15 @@ function ElementMotes({ accent, element, travel, dim }) {
 
 // Fraction of the viewport width the world is pushed right by, so it sits clear
 // of the left content column.
+// The scene has its own surfaces, and they do not come from CSS. Light mode
+// lifts the ground off black and darkens the stars, which are otherwise white
+// on white.
+const SCENE = {
+  dark: { ground: '#0a0a0b', tile: '#1c1c22', scatter: '#141418', marker: '#0e0e12', star: '#ffffff', starOpacity: 0.55 },
+  light: { ground: '#eeefec', tile: '#d5d6d0', scatter: '#c4c5be', marker: '#dedfd9', star: '#5a5c63', starOpacity: 0.42 },
+}
+const sceneFor = (theme) => SCENE[theme] || SCENE.dark
+
 const WORLD_SHIFT = 0.26
 
 // How far below centre the cube sits on a phone, as a fraction of viewport
@@ -611,7 +626,7 @@ function IsoCamera({ travel }) {
   return null
 }
 
-function Scene({ accent, element, markers, dim }) {
+function Scene({ accent, element, markers, dim, theme }) {
   const progress = useScrollProgress()
   const travel = useRef({ dist: 0, delta: 0, speed: 0 })
   return (
@@ -621,22 +636,22 @@ function Scene({ accent, element, markers, dim }) {
       <IsoCamera travel={travel} />
       <ambientLight intensity={0.5} />
       <directionalLight position={[8, 14, 6]} intensity={1.4} />
-      <Stars />
+      <Stars theme={theme} />
       {isMobileViewport ? (
-        <GroundPlane travel={travel} />
+        <GroundPlane travel={travel} theme={theme} />
       ) : (
         <>
-          <Ground element={element} travel={travel} />
-          <Markers markers={markers} accent={accent} travel={travel} />
+          <Ground element={element} travel={travel} theme={theme} />
+          <Markers markers={markers} accent={accent} travel={travel} theme={theme} />
         </>
       )}
-      <ElementMotes accent={accent} element={element} travel={travel} dim={dim} />
+      <ElementMotes accent={accent} element={element} travel={travel} dim={dim} theme={theme} />
       <Cube accent={accent} travel={travel} />
     </>
   )
 }
 
-export default function IsoWorld({ accent, element, markers, dim = 1, paused = false }) {
+export default function IsoWorld({ accent, element, markers, dim = 1, paused = false, theme = 'dark' }) {
   const reducedMotion = useReducedMotion()
 
   if (reducedMotion) {
@@ -666,7 +681,7 @@ export default function IsoWorld({ accent, element, markers, dim = 1, paused = f
           toneMapping: THREE.NoToneMapping,
         }}
       >
-        <Scene accent={accent} element={element} markers={markers} dim={dim} />
+        <Scene accent={accent} element={element} markers={markers} dim={dim} theme={theme} />
       </Canvas>
     </div>
   )

@@ -11,7 +11,7 @@ const CONSOLE_ENABLED = false
 // An engine-style readout: real numbers from the running page, not decoration.
 // Always on — it carries the name while the hero is in view, then hands over to
 // the current chapter once you start moving through the work.
-export default function Hud({ act, actIndex, paused, onTogglePause }) {
+export default function Hud({ act, actIndex, paused, onTogglePause, theme, onToggleTheme }) {
   const [fps, setFps] = useState(0)
   const [consoleOpen, setConsoleOpen] = useState(false)
   const [atHero, setAtHero] = useState(true)
@@ -114,6 +114,20 @@ export default function Hud({ act, actIndex, paused, onTogglePause }) {
         {/* Sits outside .hud so it survives the phone breakpoint that hides the
             stats — the one control here that every visitor must be able to
             reach (WCAG 2.2.2). */}
+        <button
+          className="hud__motion hud__theme"
+          onClick={onToggleTheme}
+          aria-pressed={theme === 'light'}
+          title={theme === 'light' ? 'Switch to dark' : 'Switch to light'}
+        >
+          <span className="hud__motionIcon" aria-hidden="true">
+            {theme === 'light' ? '◗' : '◖'}
+          </span>
+          <span className="hud__motionLabel">
+            {theme === 'light' ? 'Dark mode' : 'Light mode'}
+          </span>
+        </button>
+
         <button
           className="hud__motion"
           onClick={onTogglePause}

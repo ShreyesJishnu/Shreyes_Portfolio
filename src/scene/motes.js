@@ -23,6 +23,7 @@ export const PATH_CLEARANCE = 2.6
 
 export const MOTE_RULES = {
   fire: {
+    key: 'fire',
     mode: 'rise',
     // fires burning in the terrain either side of the route, low enough to sit
     // under the content rather than pull the eye off it
@@ -43,6 +44,7 @@ export const MOTE_RULES = {
     emitAtRest: 1,
   },
   water: {
+    key: 'water',
     mode: 'wave',
     // open water on both sides of the causeway
     spread: 30,
@@ -65,6 +67,7 @@ export const MOTE_RULES = {
     emitAtRest: 1,
   },
   earth: {
+    key: 'earth',
     mode: 'rise',
     taper: 0.1,
     spread: 18,
@@ -81,6 +84,7 @@ export const MOTE_RULES = {
     emitAtRest: 0,
   },
   air: {
+    key: 'air',
     mode: 'gust',
     // Wind is the one element that reads by passing *through* the scene, so it
     // ignores the path clearance every other element respects. Kept off the
@@ -120,3 +124,20 @@ export const heatFor = (rule, accent) => ({
   hot: rule.hot || accent,
   cool: rule.cool || accent,
 })
+
+// Light mode is not a token swap for the particles. They are drawn with additive
+// blending, which means "add light" — on a pale ground every colour saturates to
+// white and the field disappears. Light mode draws them normally instead, and
+// the hues have to be dark enough to register against paper rather than bright
+// enough to glow against black.
+export const MOTE_LIGHT = {
+  fire: { hot: '#c2410c', cool: '#7c2d12' },
+  water: { hot: '#0e7490', cool: '#164e63' },
+  earth: { hot: '#4d7c0f', cool: '#3f6212' },
+  air: { hot: '#78716c', cool: '#57534e' },
+}
+
+export const heatForTheme = (rule, accent, theme) =>
+  theme === 'light'
+    ? MOTE_LIGHT[rule.key] || MOTE_LIGHT.air
+    : { hot: rule.hot || accent, cool: rule.cool || accent }
