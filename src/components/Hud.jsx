@@ -15,6 +15,7 @@ export default function Hud({ act, actIndex, paused, onTogglePause, theme, onTog
   const [fps, setFps] = useState(0)
   const [consoleOpen, setConsoleOpen] = useState(false)
   const [atHero, setAtHero] = useState(true)
+  const [scrolling, setScrolling] = useState(false)
   const consoleRef = useRef(null)
 
   useEffect(() => {
@@ -37,10 +38,23 @@ export default function Hud({ act, actIndex, paused, onTogglePause, theme, onTog
   }, [])
 
   useEffect(() => {
-    const onScroll = () => setAtHero(window.scrollY < window.innerHeight * 0.6)
+    let idle
+    const onScroll = () => {
+      setAtHero(window.scrollY < window.innerHeight * 0.6)
+      // The banner is a fixed overlay, and on a phone the content runs full
+      // width, so anything scrolling past passes underneath it. It steps aside
+      // while the page is moving and comes back once it settles, which is also
+      // the only time the chapter name is worth reading.
+      setScrolling(true)
+      clearTimeout(idle)
+      idle = setTimeout(() => setScrolling(false), 200)
+    }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    return () => {
+      clearTimeout(idle)
+      window.removeEventListener('scroll', onScroll)
+    }
   }, [])
 
   useEffect(() => {
@@ -73,7 +87,7 @@ export default function Hud({ act, actIndex, paused, onTogglePause, theme, onTog
 
   return (
     <>
-      <div className="hud-title" aria-hidden="true">
+      <div className="hud-title" data-scrolling={scrolling || undefined} aria-hidden="true">
         {!atHero && <span className="hud-title__idx">{actIndex}</span>}
         {/* keyed so each change replays the entry animation */}
         <span className="hud-title__name" key={heading}>

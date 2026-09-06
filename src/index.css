@@ -948,6 +948,16 @@ body {
   letter-spacing: 0.2em;
   pointer-events: none;
   white-space: nowrap;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+/* Phones only: on desktop the content is held to the left column, so the
+   banner floats over the world and never covers a word. */
+@media (max-width: 768px) {
+  .hud-title[data-scrolling] {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-0.5rem);
+  }
 }
 
 .hud-title__idx {
