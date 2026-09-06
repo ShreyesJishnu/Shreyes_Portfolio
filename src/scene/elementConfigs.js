@@ -7,9 +7,11 @@ export const elementConfigs = {
     note: 'Who is building this.',
     accent: '#ff8a3d',
     textAccent: '#3daaff',
-    // light mode needs the same hues darkened until they clear AA on paper
-    accentLight: '#a15726',
-    textAccentLight: '#286ea6',
+    // Light mode darkens each hue until it clears AA twice over: on flat paper,
+    // and against the worst composite the phone can produce, where the world
+    // shows through at half opacity behind the scrim.
+    accentLight: '#82461f',
+    textAccentLight: '#205986',
     colorLow: [1.0, 0.35, 0.05],
     colorHigh: [1.0, 0.85, 0.3],
     rise: 0.16,
@@ -28,9 +30,11 @@ export const elementConfigs = {
     note: 'Real-time rendering, engine work, and 3D gameplay — ray tracing, camera systems, and physics sandboxes in Unity and Unreal.',
     accent: '#4fb8d6',
     textAccent: '#ffa14f',
-    // light mode needs the same hues darkened until they clear AA on paper
-    accentLight: '#317285',
-    textAccentLight: '#945d2e',
+    // Light mode darkens each hue until it clears AA twice over: on flat paper,
+    // and against the worst composite the phone can produce, where the world
+    // shows through at half opacity behind the scrim.
+    accentLight: '#275c6b',
+    textAccentLight: '#784c25',
     colorLow: [0.05, 0.25, 0.45],
     colorHigh: [0.3, 0.75, 0.9],
     rise: 0.16,
@@ -49,9 +53,11 @@ export const elementConfigs = {
     note: 'Live mobile titles — real players, real retention, and the constraints that come with shipping to a store rather than a showcase.',
     accent: '#8a9a5b',
     textAccent: '#a98ad6',
-    // light mode needs the same hues darkened until they clear AA on paper
-    accentLight: '#636f42',
-    textAccentLight: '#766196',
+    // Light mode darkens each hue until it clears AA twice over: on flat paper,
+    // and against the worst composite the phone can produce, where the world
+    // shows through at half opacity behind the scrim.
+    accentLight: '#505935',
+    textAccentLight: '#5f4e79',
     colorLow: [0.2, 0.15, 0.05],
     colorHigh: [0.45, 0.55, 0.25],
     rise: 0.16,
@@ -70,9 +76,11 @@ export const elementConfigs = {
     note: 'Hand tracking, haptics, and locomotion — where a wrong frame is not a bug, it is nausea.',
     accent: '#f2e9c9',
     textAccent: '#a9c2f2',
-    // light mode needs the same hues darkened until they clear AA on paper
-    accentLight: '#6f6b5c',
-    textAccentLight: '#5d6b85',
+    // Light mode darkens each hue until it clears AA twice over: on flat paper,
+    // and against the worst composite the phone can produce, where the world
+    // shows through at half opacity behind the scrim.
+    accentLight: '#585549',
+    textAccentLight: '#4b566c',
     colorLow: [0.85, 0.85, 0.75],
     colorHigh: [1.0, 1.0, 0.95],
     rise: 0.16,
