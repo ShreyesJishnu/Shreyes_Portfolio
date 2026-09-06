@@ -42,12 +42,21 @@ export default function App() {
   // observed alongside the acts, but kept out of actRefs so it never becomes a marker
   const tailRef = useRef(null)
 
-  // Which act is in the middle of the viewport drives the whole palette.
+  // Which act is in the middle of the viewport drives the whole palette. The
+  // banner is a separate question: the footer borrows air's colours so the world
+  // keeps a palette down there, but calling that chapter "VR Projects" is wrong,
+  // so a section can carry its own label.
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting) setActive(e.target.dataset.element)
+          if (!e.isIntersecting) return
+          setActive(e.target.dataset.element)
+          setChapter(
+            e.target.dataset.chapter
+              ? { title: e.target.dataset.chapter, index: e.target.dataset.chapterIndex }
+              : null
+          )
         })
       },
       { rootMargin: '-45% 0px -45% 0px' }
@@ -93,6 +102,8 @@ export default function App() {
   }, [])
 
   const [paused, setPaused] = useState(false)
+  // a section can label the HUD without owning an element of its own
+  const [chapter, setChapter] = useState(null)
 
   return (
     <>
@@ -211,7 +222,14 @@ export default function App() {
           )
         })}
 
-        <footer className="contact" id="contact" data-element="air" ref={tailRef}>
+        <footer
+          className="contact"
+          id="contact"
+          data-element="air"
+          data-chapter="Get in touch"
+          data-chapter-index="05"
+          ref={tailRef}
+        >
           <span className="label">Get in touch</span>
           <p className="contact__lead">
             Got something ambitious? <span className="accent">Let’s build it.</span>
@@ -234,8 +252,8 @@ export default function App() {
       </main>
 
       <Hud
-        act={elementConfigs[active].title}
-        actIndex={elementConfigs[active].index}
+        act={chapter?.title ?? elementConfigs[active].title}
+        actIndex={chapter?.index ?? elementConfigs[active].index}
         paused={paused}
         onTogglePause={() => setPaused((v) => !v)}
         theme={theme}
