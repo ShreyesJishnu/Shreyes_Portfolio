@@ -214,14 +214,23 @@ export const projects = [
     skills: ['Unity 6', 'C#', 'Multiplayer Sync', 'Live Services', 'Android & iOS'],
   },
   {
-    slug: 'snake-prototype',
-    tier: 'intermediate',
-    youtube: '1z8bZxn2y1k',
+    slug: 'velan-precast-site',
+    tier: 'hero',
+    poster: 'posters/velan-precast.svg',
+    // hosted alongside the portfolio: a static export, so it costs nothing to
+    // keep online and needs no server behind it
+    site: 'velan/',
     element: 'earth',
-    title: 'Snake Prototype',
+    title: 'Precast Manufacturer Site',
     blurb:
-      'A reimagining of the classic Snake game with unique control mechanics. Steered using keyboard input or a virtual steering wheel for a more tactile experience — cover all grid spaces, turning them green to complete each area.',
-    features: ['Custom rotation-based movement system', 'Core gameplay loop', 'UI menu system', 'Visual feedback systems'],
-    skills: ['Unity', 'C#', 'Gameplay Programming', 'Custom Input Systems', 'UI & Menu Design', 'Game Loop Architecture'],
+      'A marketing site for a precast concrete manufacturer, built as a technical drawing set: every page is a numbered sheet, with a title block, dimension rules and plan/section drawings of each product rendered as inline SVG. Next.js App Router in plain JSX and plain CSS, with no TypeScript and no Tailwind.',
+    features: [
+      'Drawing-sheet layout system with sheet numbering and title blocks',
+      'Product plan and section views drawn as inline SVG, not images',
+      'Light and dark themes with no flash before first paint',
+      'Static export to GitHub Pages, no server required',
+      'Structured data, sitemap and canonical URLs for search',
+    ],
+    skills: ['Next.js', 'React', 'Plain CSS', 'SVG', 'Static Export', 'SEO'],
   },
 ]

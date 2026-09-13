@@ -5,6 +5,9 @@ const FOCUSABLE = 'a[href], button, iframe, [tabindex]:not([tabindex="-1"])'
 export default function ProjectSheet({ project, onClose }) {
   const panelRef = useRef(null)
   const hasStore = Boolean(project.playStore || project.appStore)
+  // a project can ship its own page alongside this one; BASE_URL so it resolves
+  // under the /repo/ subpath on Pages
+  const site = project.site ? `${import.meta.env.BASE_URL}${project.site}` : null
   const poster = posterFor(project)
 
   useEffect(() => {
@@ -64,7 +67,7 @@ export default function ProjectSheet({ project, onClose }) {
 
         <h2 className="sheet__title">{project.title}</h2>
 
-        {(project.youtube || poster || !hasStore) && (
+        {(project.youtube || poster || !(hasStore || site)) && (
           <div className="media">
             {project.youtube ? (
               // Loads straight away: opening a project is itself the intent to
@@ -81,6 +84,21 @@ export default function ProjectSheet({ project, onClose }) {
             ) : (
               <span className="label">Capture coming soon</span>
             )}
+          </div>
+        )}
+
+        {site && (
+          <div className="stores">
+            <span className="label">Live now</span>
+            <div className="stores__links">
+              <a className="store-btn" href={site} target="_blank" rel="noreferrer">
+                Open the site ↗<span className="sr-only"> (opens in a new tab)</span>
+              </a>
+            </div>
+            <p className="sheet__blurb">
+              Hosted here as a static export. The client's name, figures and imagery are
+              replaced with placeholders; the layout and code are the real build.
+            </p>
           </div>
         )}
 

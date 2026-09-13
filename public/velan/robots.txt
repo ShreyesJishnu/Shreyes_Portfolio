@@ -1,0 +1,6 @@
+User-Agent: *
+Allow: /
+Disallow: /*.php
+Disallow: /api/
+
+Sitemap: https://shreyesjishnu.github.io/Shreyes_Portfolio/velan/sitemap.xml

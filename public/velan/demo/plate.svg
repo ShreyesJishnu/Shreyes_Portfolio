@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" role="img" aria-label="Placeholder image">
+  <rect width="800" height="560" fill="#e8e4dc"/>
+  <g stroke="#c7bfb2" stroke-width="2" fill="none">
+    <path d="M0 0 L800 560 M800 0 L0 560"/>
+    <rect x="1" y="1" width="798" height="558"/>
+  </g>
+  <rect x="250" y="236" width="300" height="88" fill="#e8e4dc" stroke="#a89c88" stroke-width="2"/>
+  <text x="400" y="278" text-anchor="middle" font-family="Archivo, Helvetica, sans-serif" font-size="17" letter-spacing="4" fill="#6a6052">PLACEHOLDER</text>
+  <text x="400" y="304" text-anchor="middle" font-family="Archivo, Helvetica, sans-serif" font-size="12" letter-spacing="2" fill="#8a8072">CLIENT IMAGE WITHHELD</text>
+</svg>
