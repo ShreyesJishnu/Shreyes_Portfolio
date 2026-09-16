@@ -176,23 +176,22 @@ export const projects = [
 
   // 2D projects — current commercial mobile work
   {
-    slug: 'ludo-superstar',
+    slug: 'dino-genie-coloring',
     tier: 'legendary',
-    poster: 'posters/ludo-superstar.webp',
-    playStore: 'https://play.google.com/store/apps/details?id=com.blacklightsw.ludo',
-    appStore: 'https://apps.apple.com/in/app/ludo-superstar/id1314264574',
+    poster: 'posters/dino-genie.webp',
+    playStore: 'https://play.google.com/store/apps/details?id=com.abckids.colouring',
     element: 'earth',
-    title: 'Ludo Superstar',
+    title: 'Dino Genie Coloring World',
     blurb:
-      'A live multiplayer mobile title on Google Play and the App Store, built at Blacklight Studio Works. I ship features across release branches — animation work, side games embedded inside the main app, and the live online services that keep a real player base connected.',
+      'A colouring and creative-play app for young children, shipped to Google Play under the ABC-Kids label. Over a hundred illustrations to fill in by swipe, with crayons, brushes, glow effects, stickers and stamps. The whole interface is built for hands that cannot read yet: large targets, colour-led navigation and no menus to get lost in.',
     features: [
-      'Real-time online multiplayer sync',
-      'Leaderboards and in-game chat',
-      'Side games embedded within the main app',
-      'Animation and UI feature work',
-      'Live-ops release cadence across branches',
+      '100+ illustrations across animals, dinosaurs, unicorns and flowers',
+      'Swipe-to-fill colouring with crayon, brush and glow tools',
+      'Sticker and stamp decoration layered over finished artwork',
+      'Pre-literate navigation: large targets, colour-led, no text menus',
+      'Built to the Play Families policy, with no personal data collected',
     ],
-    skills: ['Unity 6', 'C#', 'Multiplayer Sync', 'Live Services', 'Android & iOS'],
+    skills: ['Unity', 'C#', 'Android', 'Kids UX', 'Touch Interaction'],
   },
   {
     slug: 'parchisi-superstar',
@@ -233,4 +232,24 @@ export const projects = [
     ],
     skills: ['Next.js', 'React', 'Plain CSS', 'SVG', 'Static Export', 'SEO'],
   },
+  {
+    slug: 'ludo-superstar',
+    tier: 'legendary',
+    poster: 'posters/ludo-superstar.webp',
+    playStore: 'https://play.google.com/store/apps/details?id=com.blacklightsw.ludo',
+    appStore: 'https://apps.apple.com/in/app/ludo-superstar/id1314264574',
+    element: 'earth',
+    title: 'Ludo Superstar',
+    blurb:
+      'A live multiplayer mobile title on Google Play and the App Store, built at Blacklight Studio Works. I ship features across release branches — animation work, side games embedded inside the main app, and the live online services that keep a real player base connected.',
+    features: [
+      'Real-time online multiplayer sync',
+      'Leaderboards and in-game chat',
+      'Side games embedded within the main app',
+      'Animation and UI feature work',
+      'Live-ops release cadence across branches',
+    ],
+    skills: ['Unity 6', 'C#', 'Multiplayer Sync', 'Live Services', 'Android & iOS'],
+  },
+
 ]
