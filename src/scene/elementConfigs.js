@@ -48,7 +48,7 @@ export const elementConfigs = {
     alphaBase: 0.35,
   },
   earth: {
-    index: '03',
+    index: '02',
     title: '2D Projects',
     note: 'Live mobile titles — real players, real retention, and the constraints that come with shipping to a store rather than a showcase.',
     accent: '#8a9a5b',
@@ -71,7 +71,7 @@ export const elementConfigs = {
     alphaBase: 0.5,
   },
   air: {
-    index: '02',
+    index: '03',
     title: 'VR Projects',
     note: 'Hand tracking, haptics, and locomotion — where a wrong frame is not a bug, it is nausea.',
     accent: '#f2e9c9',
@@ -96,4 +96,4 @@ export const elementConfigs = {
 }
 
 // fire is the About chapter; these three are the project categories
-export const actOrder = ['air', 'earth', 'water']
+export const actOrder = ['earth', 'air', 'water']
