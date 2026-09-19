@@ -379,6 +379,23 @@ body {
   overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
   padding-bottom: 0.6rem;
+}
+
+/* A hovered card scales to 1.05 and casts a tier glow, but it lives inside a
+   scroll container, and a scroll container clips on every side — overflow-y is
+   hidden outright and the horizontal ends cut the first and last cards. So the
+   scroll box is padded by as much as the hover overflows, then pulled back out
+   by the same amount: the cards still line up with the copy above them, and the
+   box that clips them sits further out than anything they can grow into. */
+.cards[data-layout='rail'] {
+  /* Scales with the viewport because the cards do: the hover grows by a
+     percentage of card size, so a fixed inset runs out on a wide display. */
+  --card-bleed: clamp(2rem, 2.4vw, 3rem);
+
+  padding: var(--card-bleed) var(--card-bleed) calc(var(--card-bleed) + 0.9rem);
+  margin-inline: calc(var(--card-bleed) * -1);
+  /* snapping should still land a card where it looks flush, not on the padding */
+  scroll-padding-inline: var(--card-bleed);
   scrollbar-width: thin;
   scrollbar-color: var(--hairline) transparent;
 }
