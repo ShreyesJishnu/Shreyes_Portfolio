@@ -219,6 +219,8 @@ export const projects = [
     // hosted alongside the portfolio: a static export, so it costs nothing to
     // keep online and needs no server behind it
     site: 'velan/',
+    siteNote:
+      "Hosted here as a static export. The client's name, figures and imagery are replaced with placeholders; the layout and code are the real build.",
     element: 'earth',
     title: 'Precast Manufacturer Site',
     blurb:
@@ -233,23 +235,24 @@ export const projects = [
     skills: ['Next.js', 'React', 'Plain CSS', 'SVG', 'Static Export', 'SEO'],
   },
   {
-    slug: 'ludo-superstar',
-    tier: 'legendary',
-    poster: 'posters/ludo-superstar.webp',
-    playStore: 'https://play.google.com/store/apps/details?id=com.blacklightsw.ludo',
-    appStore: 'https://apps.apple.com/in/app/ludo-superstar/id1314264574',
+    slug: 'byos-great-indian-sandwich',
+    tier: 'hero',
+    poster: 'posters/byos-sandwich.webp',
+    site: 'https://shreyesjishnu.github.io/byos-great-indian-sandwich/',
+    siteNote:
+      'A working prototype, not a shipped campaign. The entry form keeps its data in the browser; there is no server behind it.',
     element: 'earth',
-    title: 'Ludo Superstar',
+    title: 'The Great Indian Sandwich',
     blurb:
-      'A live multiplayer mobile title on Google Play and the App Store, built at Blacklight Studio Works. I ship features across release branches — animation work, side games embedded inside the main app, and the live online services that keep a real player base connected.',
+      'A scroll-driven sandwich builder for a Dr. Oetker QR campaign. Scanning the pack opens a page that cooks as you scroll: five steps, each a swipe carousel, assembling a live 3D sandwich layer by layer before you name it and enter. Built to be opened once, on a phone, by someone standing in a shop with no app and no account.',
     features: [
-      'Real-time online multiplayer sync',
-      'Leaderboards and in-game chat',
-      'Side games embedded within the main app',
-      'Animation and UI feature work',
-      'Live-ops release cadence across branches',
+      'Five-step build: bread, mayo, filling, veggies, crunch',
+      'Live WebGL sandwich assembled layer by layer as the page scrolls',
+      'Swipe carousels sized for one thumb on a phone',
+      'Blender source baked to Draco-compressed glTF at build time',
+      'Ships as static files, with no server behind the page',
     ],
-    skills: ['Unity 6', 'C#', 'Multiplayer Sync', 'Live Services', 'Android & iOS'],
+    skills: ['Three.js', 'WebGL', 'Blender', 'Vanilla JS', 'Scroll Interaction'],
   },
 
 ]
