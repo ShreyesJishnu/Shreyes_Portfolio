@@ -194,6 +194,26 @@ export const projects = [
     skills: ['Unity', 'C#', 'Android', 'Kids UX', 'Touch Interaction'],
   },
   {
+    slug: 'byos-great-indian-sandwich',
+    tier: 'hero',
+    poster: 'posters/byos-sandwich.webp',
+    site: 'https://shreyesjishnu.github.io/byos-great-indian-sandwich/',
+    siteNote:
+      'A working prototype, not a shipped campaign. The entry form keeps its data in the browser; there is no server behind it.',
+    element: 'earth',
+    title: 'The Great Indian Sandwich',
+    blurb:
+      'A scroll-driven sandwich builder for a Dr. Oetker QR campaign. Scanning the pack opens a page that cooks as you scroll: five steps, each a swipe carousel, assembling a live 3D sandwich layer by layer before you name it and enter. Built to be opened once, on a phone, by someone standing in a shop with no app and no account.',
+    features: [
+      'Five-step build: bread, mayo, filling, veggies, crunch',
+      'Live WebGL sandwich assembled layer by layer as the page scrolls',
+      'Swipe carousels sized for one thumb on a phone',
+      'Blender source baked to Draco-compressed glTF at build time',
+      'Ships as static files, with no server behind the page',
+    ],
+    skills: ['Three.js', 'WebGL', 'Blender', 'Vanilla JS', 'Scroll Interaction'],
+  },
+  {
     slug: 'parchisi-superstar',
     tier: 'legendary',
     poster: 'posters/parchisi-superstar.webp',
@@ -233,26 +253,6 @@ export const projects = [
       'Structured data, sitemap and canonical URLs for search',
     ],
     skills: ['Next.js', 'React', 'Plain CSS', 'SVG', 'Static Export', 'SEO'],
-  },
-  {
-    slug: 'byos-great-indian-sandwich',
-    tier: 'hero',
-    poster: 'posters/byos-sandwich.webp',
-    site: 'https://shreyesjishnu.github.io/byos-great-indian-sandwich/',
-    siteNote:
-      'A working prototype, not a shipped campaign. The entry form keeps its data in the browser; there is no server behind it.',
-    element: 'earth',
-    title: 'The Great Indian Sandwich',
-    blurb:
-      'A scroll-driven sandwich builder for a Dr. Oetker QR campaign. Scanning the pack opens a page that cooks as you scroll: five steps, each a swipe carousel, assembling a live 3D sandwich layer by layer before you name it and enter. Built to be opened once, on a phone, by someone standing in a shop with no app and no account.',
-    features: [
-      'Five-step build: bread, mayo, filling, veggies, crunch',
-      'Live WebGL sandwich assembled layer by layer as the page scrolls',
-      'Swipe carousels sized for one thumb on a phone',
-      'Blender source baked to Draco-compressed glTF at build time',
-      'Ships as static files, with no server behind the page',
-    ],
-    skills: ['Three.js', 'WebGL', 'Blender', 'Vanilla JS', 'Scroll Interaction'],
   },
 
 ]
