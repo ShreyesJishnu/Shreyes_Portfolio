@@ -208,8 +208,6 @@ export const projects = [
       'Five-step build: bread, mayo, filling, veggies, crunch',
       'Live WebGL sandwich assembled layer by layer as the page scrolls',
       'Swipe carousels sized for one thumb on a phone',
-      'Blender source baked to Draco-compressed glTF at build time',
-      'Ships as static files, with no server behind the page',
     ],
     skills: ['Three.js', 'WebGL', 'Blender', 'Vanilla JS', 'Scroll Interaction'],
   },
