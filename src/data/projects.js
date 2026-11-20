@@ -194,6 +194,24 @@ export const projects = [
     skills: ['Unity', 'C#', 'Android', 'Kids UX', 'Touch Interaction'],
   },
   {
+    slug: 'dino-genie-chef',
+    tier: 'legendary',
+    poster: 'posters/dino-genie-chef.webp',
+    playStore: 'https://play.google.com/store/apps/details?id=com.dinogenie.kids.bakinggame',
+    element: 'earth',
+    title: 'DinoGenie Chef',
+    blurb:
+      'A cooking and baking game for young children, published to Google Play. Seven kitchens in one app: cake, cupcakes, pizza, burgers, sandwiches, donuts and pancakes, with an ingredient shop to stock them from. Same pre-literate rules as the colouring app: pick by picture, no reading, nothing to lose.',
+    features: [
+      'Seven guided recipes, each with its own kitchen',
+      'A decoration pass on every dish: frosting, toppings, sprinkles',
+      'Ingredient shop feeding the recipes',
+      'Picture-led navigation, large targets, no text menus',
+      'Play Families policy: no data collected, none shared',
+    ],
+    skills: ['Android', 'Google Play', 'Kids UX', 'Touch Interaction'],
+  },
+  {
     slug: 'byos-great-indian-sandwich',
     tier: 'hero',
     poster: 'posters/byos-sandwich.webp',
